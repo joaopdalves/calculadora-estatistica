@@ -429,7 +429,6 @@ table.data-table tr:nth-child(even) { background: rgba(200,225,255,0.15); }
 ::-webkit-scrollbar-track { background: rgba(180,210,240,0.3); }
 ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #5a9ae0, #2a6ab0); border-radius: 4px; border: 1px solid rgba(255,255,255,0.3); }
 
-/* ── Tablet (≤768px) ── */
 @media (max-width: 768px) {
   .window { max-width: 100%; }
   .app-title { font-size: 13px; }
@@ -438,7 +437,6 @@ table.data-table tr:nth-child(even) { background: rgba(200,225,255,0.15); }
   .results-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
-/* ── Mobile (≤600px) ── */
 @media (max-width: 600px) {
   body { padding: 4px 4px 56px; justify-content: flex-start; padding-top: 12px; }
   .taskbar { height: 46px; padding: 0 8px; }
@@ -476,7 +474,6 @@ table.data-table tr:nth-child(even) { background: rgba(200,225,255,0.15); }
   .section-label { font-size: 10px; }
 }
 
-/* ── Small mobile (≤400px) ── */
 @media (max-width: 400px) {
   .tab { font-size: 9px; padding: 6px 6px; }
   .app-title { font-size: 11px; }

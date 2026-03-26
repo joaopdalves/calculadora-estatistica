@@ -21,7 +21,6 @@ function switchTab(idx) {
   document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('active', i === idx));
 }
 
-/* ── P0 ── */
 function calcP0() {
   showError('p0-error', '');
   const raw = document.getElementById('p0-input').value.trim();
@@ -35,12 +34,10 @@ function calcP0() {
   const range = sorted[n-1] - sorted[0];
   const std = Math.sqrt(data.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / n);
 
-  // median
   let median;
   if (n % 2 === 1) median = sorted[Math.floor(n/2)];
   else median = (sorted[n/2 - 1] + sorted[n/2]) / 2;
 
-  // mode
   const freq = {};
   data.forEach(v => freq[v] = (freq[v] || 0) + 1);
   const maxF = Math.max(...Object.values(freq));
@@ -85,7 +82,6 @@ function calcP1() {
   const data = parseNumbers(raw);
   if (data.length < 2) { showError('p1-error','Insira pelo menos 2 valores numéricos.'); return; }
 
-  // Build frequency table automatically
   const freqMap = {};
   data.forEach(v => freqMap[v] = (freqMap[v] || 0) + 1);
   const vals = Object.keys(freqMap).map(Number).sort((a,b)=>a-b);
@@ -96,12 +92,10 @@ function calcP1() {
   const range = vals[vals.length-1] - vals[0];
   const std = Math.sqrt(vals.reduce((s,v,i)=>s+freqs[i]*Math.pow(v-mean,2),0)/n);
 
-  // median
   let cum=0, median=vals[0];
   const half = n/2;
   for(let i=0;i<vals.length;i++){cum+=freqs[i];if(cum>=half){median=vals[i];break;}}
 
-  // mode
   const maxF=Math.max(...freqs);
   const allSame=new Set(freqs).size===1;
   const modeStr=allSame?'Amodal':vals.filter((_,i)=>freqs[i]===maxF).map(fmt).join(' | ');
@@ -124,7 +118,6 @@ function calcP1() {
   document.getElementById('p1-results').style.display='block';
 }
 
-/* ── P2 ── */
 function clearP2(){
   document.getElementById('p2-input').value='';
   document.getElementById('p2-nclasses').value='';
@@ -149,17 +142,14 @@ function calcP2(){
   const dataMin = sorted[0];
   const dataMax = sorted[n-1];
 
-  // Number of classes: user input or Sturges
   let k = parseInt(document.getElementById('p2-nclasses').value);
   if (isNaN(k) || k < 2) k = Math.ceil(1 + 3.322 * Math.log10(n));
   if (k > 20) k = 20;
 
-  // Class width (rounded up to nice number)
   const rawH = (dataMax - dataMin) / k;
   const mag = Math.pow(10, Math.floor(Math.log10(rawH)));
   const h = Math.ceil(rawH / mag) * mag;
 
-  // Build classes starting from dataMin
   const cls = [];
   for (let i = 0; i < k; i++) {
     const li = dataMin + i * h;
@@ -168,7 +158,7 @@ function calcP2(){
     const fAdj = (i === k-1) ? sorted.filter(v => v >= li && v <= ls).length : f;
     if (i < k-1 || fAdj > 0) cls.push({li, ls, f: i === k-1 ? fAdj : f, m: (li+ls)/2});
   }
-  // Remove trailing empty classes
+
   while (cls.length > 1 && cls[cls.length-1].f === 0) cls.pop();
 
   const freqs=cls.map(c=>c.f), mids=cls.map(c=>c.m);
@@ -179,13 +169,11 @@ function calcP2(){
   const std=Math.sqrt(sumDev/nTotal);
   const range=cls[cls.length-1].ls-cls[0].li;
 
-  // median interpolation
   const half=nTotal/2;let cumBefore=0,mc=null;
   for(const c of cls){if(cumBefore+c.f>=half){mc={...c,cumBefore};break;}cumBefore+=c.f;}
   const hMc=mc.ls-mc.li;
   const median=mc.li+((half-mc.cumBefore)/mc.f)*hMc;
 
-  // mode Czuber
   const maxF=Math.max(...freqs);
   const moIdx=freqs.indexOf(maxF);
   let mo;
@@ -222,7 +210,6 @@ function calcP2(){
 
 function rmRow(id){const el=document.getElementById(id);if(el)el.remove();}
 
-// Clock
 function tick(){
   const now=new Date();
   document.getElementById('clock').innerHTML=
@@ -230,10 +217,8 @@ function tick(){
     '<span style="font-size:10px">'+now.toLocaleDateString('pt-BR')+'</span>';
 }
 
-// Init
 (()=>{ tick(); setInterval(tick,10000); })();
 
-// Tooltip
 const ttBox = document.getElementById('tooltip-box');
 document.querySelectorAll('.th-tip').forEach(el => {
   el.addEventListener('mouseenter', e => {
