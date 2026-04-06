@@ -17,13 +17,12 @@
     </div>
     Iniciar
   </div>
-  <div class="taskbar-app">📊 Calculadora Estatística 1.0</div>
+  <div class="taskbar-app"><img src="beta.png" width="16" height="16" style="object-fit:contain;display:inline-block;vertical-align:middle;border-radius:3px;"> Calculadora Estatística 1.0</div>
   <div class="taskbar-clock" id="clock"></div>
 </div>
 
 <div class="window">
   <div class="title-bar">
-    <div class="window-icon">📊</div>
     <div class="title-text">Calculadora Estatística Beta da Montanha 1.0</div>
     <div class="win-controls">
       <div class="win-btn win-btn-min">─</div>
@@ -34,18 +33,18 @@
 
   <div class="window-body">
     <div class="app-header">
-      <div class="app-logo" style="font-size:52px;line-height:1;">📊</div>
+      <div class="app-logo" style="width:64px;height:64px;flex-shrink:0;"><img src="beta.png" width="64" height="64" style="object-fit:contain;display:block;border-radius:10px;"></div>
       <div class="app-title-block">
-        <div class="app-title">Calculadora Estatística Descritiva 1.0</div>
-        <div class="app-subtitle">Tendência Central &amp; Dispersão · Dados Não Agrupados e Agrupados</div>
+        <div class="app-title">Calculadora Estatística Beta da Montanha 1.0</div>
+        <div class="app-subtitle">Tendência Central e Dispersão · Dados Não Agrupados e Agrupados</div>
       </div>
-      <div class="group-badge">Beta da Montanha</div>
+      <div class="group-badge">Versão 1.0</div>
     </div>
 
     <div class="tabs-bar">
-      <div class="tab active" onclick="switchTab(0)">📋 Dados Não Agrupados</div>
-      <div class="tab" onclick="switchTab(1)">📊 Agrupados s/ Intervalo</div>
-      <div class="tab" onclick="switchTab(2)">📐 Agrupados c/ Intervalo</div>
+      <div class="tab active" onclick="switchTab(0)">Dados Não Agrupados</div>
+      <div class="tab" onclick="switchTab(1)">Agrupados s/ Intervalo</div>
+      <div class="tab" onclick="switchTab(2)">Agrupados c/ Intervalo</div>
     </div>
 
     <div class="panel active" id="panel-0">
@@ -58,7 +57,7 @@
       <div class="btn-row">
         <button class="btn btn-primary" onclick="calcP0()">▶ Calcular</button>
         <button class="btn btn-secondary" onclick="clearP0()">✕ Limpar</button>
-        <button class="btn btn-secondary" onclick="exampleP0()">💾 Exemplo</button>
+        <button class="btn btn-secondary" onclick="exampleP0()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#a8d4f5" style="display:inline-block;vertical-align:middle;"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0a2645" stroke-width="0.5"/></svg> Exemplo</button>
       </div>
       <div id="p0-error"></div>
       <div id="p0-results" class="results-panel" style="display:none;">
@@ -88,7 +87,7 @@
       <div class="btn-row">
         <button class="btn btn-primary" onclick="calcP1()">▶ Calcular</button>
         <button class="btn btn-secondary" onclick="clearP1()">✕ Limpar</button>
-        <button class="btn btn-secondary" onclick="exampleP1()">💾 Exemplo</button>
+        <button class="btn btn-secondary" onclick="exampleP1()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#a8d4f5" style="display:inline-block;vertical-align:middle;"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#1e6dc4" stroke-width="0.5"/></svg> Exemplo</button>
       </div>
       <div id="p1-error"></div>
       <div id="p1-results" class="results-panel" style="display:none;">
@@ -132,12 +131,12 @@
           <label>Número de classes:</label>
           <input type="number" id="p2-nclasses" min="2" max="20" placeholder="Auto (Sturges)" style="max-width:180px;">
         </div>
-        <div style="font-size:11px;color:#5a7aaa;margin-top:18px;">Deixe em branco para usar a <b>Regra de Sturges</b> automaticamente.</div>
+        <div class="hint "style="font-size:11px;color:#5a7aaa;margin-top:18px;">💡 Deixe em branco para usar a <b>Regra de Sturges</b> automaticamente.</div>
       </div>
       <div class="btn-row">
         <button class="btn btn-primary" onclick="calcP2()">▶ Calcular</button>
         <button class="btn btn-secondary" onclick="clearP2()">✕ Limpar</button>
-        <button class="btn btn-secondary" onclick="exampleP2()">💾 Exemplo</button>
+        <button class="btn btn-secondary" onclick="exampleP2()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#a8d4f5" style="display:inline-block;vertical-align:middle;"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#1e6dc4" stroke-width="0.5"/></svg> Exemplo</button>
       </div>
       <div id="p2-error"></div>
       <div id="p2-results" class="results-panel" style="display:none;">
