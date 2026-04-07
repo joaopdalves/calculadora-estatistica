@@ -187,7 +187,7 @@ function calcP2() {
   const mean = sumMF / nTotal;
   const sumDev = mids.reduce((s, m, i) => s + freqs[i] * Math.pow(m - mean, 2), 0);
   const std = Math.sqrt(sumDev / nTotal);
-  const range = cls[cls.length - 1].ls - cls[0].li;
+  const range = dataMax - dataMin;
 
   const half = nTotal / 2;
   let cumBefore = 0;
