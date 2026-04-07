@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculadora Estatística Beta da Montanha 1.0</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora Estatística Beta da Montanha 1.0</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -14,7 +14,10 @@
 
 <div id="start-menu">
   <div class="start-menu-top">
-    <div class="start-menu-avatar" id="avatar-btn" title="Clique para ver foto" style="cursor:pointer;" onclick="event.stopPropagation();closeStartMenu();document.getElementById('lb').style.display='flex'"><img src="jefferson.png" alt="Jefferson Biajone"></div>
+    <div class="start-menu-avatar" id="avatar-btn" title="Clique para ver foto" style="cursor:pointer;"
+      onclick="event.stopPropagation();closeStartMenu();document.getElementById('lb').style.display='flex'">
+      <img src="jefferson.png" alt="Jefferson Biajone">
+    </div>
     <div class="start-menu-username">Jefferson Biajone</div>
   </div>
   <div class="start-menu-body">
@@ -64,7 +67,6 @@
   <span>Calculadora Estatística</span>
 </div>
 
-
 <div class="taskbar">
   <div class="start-btn">
     <div class="start-icon">
@@ -72,7 +74,10 @@
     </div>
     Iniciar
   </div>
-  <div class="taskbar-app"><img src="beta.png" width="16" height="16" style="object-fit:contain;display:inline-block;vertical-align:middle;border-radius:3px;"> Calculadora Estatística</div>
+  <div class="taskbar-app">
+    <img src="beta.png" width="16" height="16" style="object-fit:contain;display:inline-block;vertical-align:middle;border-radius:3px;">
+    Calculadora Estatística
+  </div>
   <div class="taskbar-clock" id="clock"></div>
 </div>
 
@@ -88,7 +93,9 @@
 
   <div class="window-body">
     <div class="app-header">
-      <div class="app-logo" style="width:64px;height:64px;flex-shrink:0;"><img src="beta.png" width="64" height="64" style="object-fit:contain;display:block;border-radius:10px;"></div>
+      <div class="app-logo" style="width:64px;height:64px;flex-shrink:0;">
+        <img src="beta.png" width="64" height="64" style="object-fit:contain;display:block;border-radius:10px;">
+      </div>
       <div class="app-title-block">
         <div class="app-title">Calculadora Estatística Beta da Montanha 1.0</div>
         <div class="app-subtitle">Tendência Central e Dispersão · Dados Não Agrupados e Agrupados</div>
@@ -112,18 +119,41 @@
       <div class="btn-row">
         <button class="btn btn-primary" onclick="calcP0()">▶ Calcular</button>
         <button class="btn btn-secondary" onclick="clearP0()">✕ Limpar</button>
-        <button class="btn btn-secondary" onclick="exampleP0()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/></svg> Exemplo</button>
+        <button class="btn btn-secondary" onclick="exampleP0()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;">
+            <path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/>
+          </svg>
+          Exemplo
+        </button>
       </div>
       <div id="p0-error"></div>
       <div id="p0-results" class="results-panel" style="display:none;">
         <div class="results-header">📈 Resultados — Dados Não Agrupados</div>
         <div class="results-grid">
-          <div class="result-cell"><div class="result-cell-label">Média (x̄) <span class="th-tip" data-tip="Soma de todos os valores&#10;dividida pela quantidade (n)">?</span></div><div class="result-cell-value" id="p0-mean">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Moda (Mo) <span class="th-tip" data-tip="Valor que mais se repete.&#10;'Amodal' = todos aparecem igualmente">?</span></div><div class="result-cell-value" id="p0-mode">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Valor central dos dados ordenados.&#10;50% dos dados ficam abaixo, 50% acima">?</span></div><div class="result-cell-value" id="p0-median">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Amplitude (AT) <span class="th-tip" data-tip="Diferença entre o maior e o menor valor&#10;AT = Máximo − Mínimo">?</span></div><div class="result-cell-value" id="p0-range">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="Mede a dispersão dos dados em torno da média.&#10;Quanto maior, mais espalhados os valores">?</span></div><div class="result-cell-value" id="p0-std">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Qtd. dados (n) <span class="th-tip" data-tip="Total de valores inseridos no conjunto">?</span></div><div class="result-cell-value" id="p0-n">—</div></div>
+          <div class="result-cell">
+            <div class="result-cell-label">Média (x̄) <span class="th-tip" data-tip="Soma de todos os valores dividida pela quantidade&#10;x̄ = Σxᵢ / n">?</span></div>
+            <div class="result-cell-value" id="p0-mean">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Moda (Mo) <span class="th-tip" data-tip="Valor que aparece com maior frequência&#10;'Amodal' = todos os valores têm a mesma frequência">?</span></div>
+            <div class="result-cell-value" id="p0-mode">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Valor central dos dados ordenados&#10;Se n é par: média dos dois valores centrais">?</span></div>
+            <div class="result-cell-value" id="p0-median">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Amplitude (AT) <span class="th-tip" data-tip="Diferença entre o maior e o menor valor&#10;AT = Xmáx − Xmín">?</span></div>
+            <div class="result-cell-value" id="p0-range">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="σ = √[ Σ(xᵢ−x̄)² / n ]&#10;Mede a dispersão dos dados em relação à média">?</span></div>
+            <div class="result-cell-value" id="p0-std">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Qtd. dados (n) <span class="th-tip" data-tip="Total de valores inseridos no conjunto">?</span></div>
+            <div class="result-cell-value" id="p0-n">—</div>
+          </div>
         </div>
         <div class="results-detail">
           <div class="detail-title">Dados ordenados</div>
@@ -142,30 +172,58 @@
       <div class="btn-row">
         <button class="btn btn-primary" onclick="calcP1()">▶ Calcular</button>
         <button class="btn btn-secondary" onclick="clearP1()">✕ Limpar</button>
-        <button class="btn btn-secondary" onclick="exampleP1()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/></svg> Exemplo</button>
+        <button class="btn btn-secondary" onclick="exampleP1()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;">
+            <path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/>
+          </svg>
+          Exemplo
+        </button>
       </div>
       <div id="p1-error"></div>
       <div id="p1-results" class="results-panel" style="display:none;">
         <div class="results-header">📈 Resultados — Agrupados s/ Intervalo</div>
         <div class="results-grid">
-          <div class="result-cell"><div class="result-cell-label">Média (x̄) <span class="th-tip" data-tip="Média ponderada&#10;x̄ = Σ(xᵢ·fᵢ) / Σfᵢ">?</span></div><div class="result-cell-value" id="p1-mean">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Moda (Mo) <span class="th-tip" data-tip="Valor com maior frequência absoluta.&#10;'Amodal' = todas as frequências são iguais">?</span></div><div class="result-cell-value" id="p1-mode">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Valor onde a frequência acumulada&#10;atinge ou ultrapassa n/2">?</span></div><div class="result-cell-value" id="p1-median">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Amplitude (AT) <span class="th-tip" data-tip="Diferença entre o maior e o menor valor&#10;AT = Xmáx − Xmín">?</span></div><div class="result-cell-value" id="p1-range">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="σ = √[ Σfᵢ(xᵢ−x̄)² / n ]&#10;Dispersão ponderada pelas frequências">?</span></div><div class="result-cell-value" id="p1-std">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Total (Σfᵢ) <span class="th-tip" data-tip="Soma de todas as frequências&#10;= quantidade total de dados (n)">?</span></div><div class="result-cell-value" id="p1-n">—</div></div>
+          <div class="result-cell">
+            <div class="result-cell-label">Média (x̄) <span class="th-tip" data-tip="Média ponderada&#10;x̄ = Σ(xᵢ·fᵢ) / Σfᵢ">?</span></div>
+            <div class="result-cell-value" id="p1-mean">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Moda (Mo) <span class="th-tip" data-tip="Valor com maior frequência absoluta.&#10;'Amodal' = todas as frequências são iguais">?</span></div>
+            <div class="result-cell-value" id="p1-mode">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Valor onde a frequência acumulada&#10;atinge ou ultrapassa n/2">?</span></div>
+            <div class="result-cell-value" id="p1-median">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Amplitude (AT) <span class="th-tip" data-tip="Diferença entre o maior e o menor valor&#10;AT = Xmáx − Xmín">?</span></div>
+            <div class="result-cell-value" id="p1-range">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="σ = √[ Σfᵢ(xᵢ−x̄)² / n ]&#10;Dispersão ponderada pelas frequências">?</span></div>
+            <div class="result-cell-value" id="p1-std">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Total (Σfᵢ) <span class="th-tip" data-tip="Soma de todas as frequências&#10;= quantidade total de dados (n)">?</span></div>
+            <div class="result-cell-value" id="p1-n">—</div>
+          </div>
         </div>
         <div class="results-detail">
-          <div class="detail-title">Tabela de cálculo <span style="font-size:9.5px;font-weight:400;color:#7a9acc;text-transform:none;letter-spacing:0">— passe o mouse nos <b>?</b> para ver o que cada coluna significa</span></div>
+          <div class="detail-title">
+            Tabela de cálculo
+            <span style="font-size:9.5px;font-weight:400;color:#7a9acc;text-transform:none;letter-spacing:0">— passe o mouse nos <b>?</b> para ver o que cada coluna significa</span>
+          </div>
           <div class="table-wrapper">
             <table class="step-table">
-              <thead><tr>
-                <th><span class="th-wrap">xᵢ <span class="th-tip" data-tip="Valor observado&#10;(cada número distinto do conjunto)">?</span></span></th>
-                <th><span class="th-wrap">fᵢ <span class="th-tip" data-tip="Frequência absoluta&#10;Quantas vezes xᵢ aparece nos dados">?</span></span></th>
-                <th><span class="th-wrap">Fac <span class="th-tip" data-tip="Frequência acumulada&#10;Soma das frequências até esta linha">?</span></span></th>
-                <th><span class="th-wrap">xᵢ·fᵢ <span class="th-tip" data-tip="Valor × Frequência&#10;Usado para calcular a média ponderada">?</span></span></th>
-                <th><span class="th-wrap">(xᵢ−x̄)²·fᵢ <span class="th-tip" data-tip="Desvio quadrático ponderado&#10;Mede o quanto cada valor se afasta da média&#10;(base do desvio padrão)">?</span></span></th>
-              </tr></thead>
+              <thead>
+                <tr>
+                  <th><span class="th-wrap">xᵢ <span class="th-tip" data-tip="Valor observado&#10;(cada número distinto do conjunto)">?</span></span></th>
+                  <th><span class="th-wrap">fᵢ <span class="th-tip" data-tip="Frequência absoluta&#10;Quantas vezes xᵢ aparece nos dados">?</span></span></th>
+                  <th><span class="th-wrap">Fac <span class="th-tip" data-tip="Frequência acumulada&#10;Soma das frequências até esta linha">?</span></span></th>
+                  <th><span class="th-wrap">xᵢ·fᵢ <span class="th-tip" data-tip="Valor × Frequência&#10;Usado para calcular a média ponderada">?</span></span></th>
+                  <th><span class="th-wrap">(xᵢ−x̄)²·fᵢ <span class="th-tip" data-tip="Desvio quadrático ponderado&#10;Mede o quanto cada valor se afasta da média&#10;(base do desvio padrão)">?</span></span></th>
+                </tr>
+              </thead>
               <tbody id="p1-detail-body"></tbody>
               <tfoot id="p1-detail-foot"></tfoot>
             </table>
@@ -186,36 +244,64 @@
           <label>Número de classes:</label>
           <input type="number" id="p2-nclasses" min="2" max="20" placeholder="Auto (Sturges)" style="max-width:180px;">
         </div>
-        <div class="hint "style="font-size:11px;color:#5a7aaa;margin-top:18px;">💡 Deixe em branco para usar a <b>Regra de Sturges</b> automaticamente.</div>
+        <div class="hint" style="font-size:11px;color:#5a7aaa;margin-top:18px;">💡 Deixe em branco para usar a <b>Regra de Sturges</b> automaticamente.</div>
       </div>
       <div class="btn-row">
         <button class="btn btn-primary" onclick="calcP2()">▶ Calcular</button>
         <button class="btn btn-secondary" onclick="clearP2()">✕ Limpar</button>
-        <button class="btn btn-secondary" onclick="exampleP2()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/></svg> Exemplo</button>
+        <button class="btn btn-secondary" onclick="exampleP2()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;">
+            <path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/>
+          </svg>
+          Exemplo
+        </button>
       </div>
       <div id="p2-error"></div>
       <div id="p2-results" class="results-panel" style="display:none;">
         <div class="results-header">📈 Resultados — Agrupados c/ Intervalo</div>
         <div class="results-grid">
-          <div class="result-cell"><div class="result-cell-label">Média (x̄) <span class="th-tip" data-tip="x̄ = Σ(mᵢ·fᵢ) / n&#10;Usa o ponto médio de cada classe">?</span></div><div class="result-cell-value" id="p2-mean">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Moda (Mo) <span class="th-tip" data-tip="Fórmula de Czuber para dados agrupados&#10;Mo = lᵢ + [d₁/(d₁+d₂)]·h&#10;d₁ = fmodal − fanteriror&#10;d₂ = fmodal − fposterior">?</span></div><div class="result-cell-value" id="p2-mode">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Interpolação linear na classe mediana&#10;Md = lᵢ + [(n/2 − Fac) / fᵢ] · h">?</span></div><div class="result-cell-value" id="p2-median">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Amplitude (AT) <span class="th-tip" data-tip="Diferença entre o limite superior da última&#10;classe e o limite inferior da primeira">?</span></div><div class="result-cell-value" id="p2-range">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="σ = √[ Σfᵢ(mᵢ−x̄)² / n ]&#10;Calculado com os pontos médios das classes">?</span></div><div class="result-cell-value" id="p2-std">—</div></div>
-          <div class="result-cell"><div class="result-cell-label">Total (Σfᵢ) <span class="th-tip" data-tip="Soma de todas as frequências&#10;= quantidade total de dados (n)">?</span></div><div class="result-cell-value" id="p2-n">—</div></div>
+          <div class="result-cell">
+            <div class="result-cell-label">Média (x̄) <span class="th-tip" data-tip="x̄ = Σ(mᵢ·fᵢ) / n&#10;Usa o ponto médio de cada classe">?</span></div>
+            <div class="result-cell-value" id="p2-mean">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Moda (Mo) <span class="th-tip" data-tip="Fórmula de Czuber para dados agrupados&#10;Mo = lᵢ + [d₁/(d₁+d₂)]·h&#10;d₁ = fmodal − fanteriror&#10;d₂ = fmodal − fposterior">?</span></div>
+            <div class="result-cell-value" id="p2-mode">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Interpolação linear na classe mediana&#10;Md = lᵢ + [(n/2 − Fac) / fᵢ] · h">?</span></div>
+            <div class="result-cell-value" id="p2-median">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Amplitude (AT) <span class="th-tip" data-tip="Diferença entre o limite superior da última&#10;classe e o limite inferior da primeira">?</span></div>
+            <div class="result-cell-value" id="p2-range">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="σ = √[ Σfᵢ(mᵢ−x̄)² / n ]&#10;Calculado com os pontos médios das classes">?</span></div>
+            <div class="result-cell-value" id="p2-std">—</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Total (Σfᵢ) <span class="th-tip" data-tip="Soma de todas as frequências&#10;= quantidade total de dados (n)">?</span></div>
+            <div class="result-cell-value" id="p2-n">—</div>
+          </div>
         </div>
         <div class="results-detail">
-          <div class="detail-title">Tabela de cálculo <span style="font-size:9.5px;font-weight:400;color:#7a9acc;text-transform:none;letter-spacing:0">— passe o mouse nos <b>?</b> para ver o que cada coluna significa</span></div>
+          <div class="detail-title">
+            Tabela de cálculo
+            <span style="font-size:9.5px;font-weight:400;color:#7a9acc;text-transform:none;letter-spacing:0">— passe o mouse nos <b>?</b> para ver o que cada coluna significa</span>
+          </div>
           <div class="table-wrapper">
             <table class="step-table">
-              <thead><tr>
-                <th><span class="th-wrap">Classe <span class="th-tip" data-tip="Intervalo de classe [lᵢ, Lᵢ[&#10;Agrupa valores próximos em faixas">?</span></span></th>
-                <th><span class="th-wrap">mᵢ <span class="th-tip" data-tip="Ponto médio da classe&#10;mᵢ = (Lim. inferior + Lim. superior) / 2">?</span></span></th>
-                <th><span class="th-wrap">fᵢ <span class="th-tip" data-tip="Frequência absoluta&#10;Quantos dados caem neste intervalo">?</span></span></th>
-                <th><span class="th-wrap">Fac <span class="th-tip" data-tip="Frequência acumulada&#10;Soma das frequências até esta classe">?</span></span></th>
-                <th><span class="th-wrap">mᵢ·fᵢ <span class="th-tip" data-tip="Ponto médio × Frequência&#10;Usado para calcular a média das classes">?</span></span></th>
-                <th><span class="th-wrap">(mᵢ−x̄)²·fᵢ <span class="th-tip" data-tip="Desvio quadrático ponderado&#10;Base do cálculo do desvio padrão agrupado">?</span></span></th>
-              </tr></thead>
+              <thead>
+                <tr>
+                  <th><span class="th-wrap">Classe <span class="th-tip" data-tip="Intervalo de classe [lᵢ, Lᵢ[&#10;Agrupa valores próximos em faixas">?</span></span></th>
+                  <th><span class="th-wrap">mᵢ <span class="th-tip" data-tip="Ponto médio da classe&#10;mᵢ = (Lim. inferior + Lim. superior) / 2">?</span></span></th>
+                  <th><span class="th-wrap">fᵢ <span class="th-tip" data-tip="Frequência absoluta&#10;Quantos dados caem neste intervalo">?</span></span></th>
+                  <th><span class="th-wrap">Fac <span class="th-tip" data-tip="Frequência acumulada&#10;Soma das frequências até esta classe">?</span></span></th>
+                  <th><span class="th-wrap">mᵢ·fᵢ <span class="th-tip" data-tip="Ponto médio × Frequência&#10;Usado para calcular a média das classes">?</span></span></th>
+                  <th><span class="th-wrap">(mᵢ−x̄)²·fᵢ <span class="th-tip" data-tip="Desvio quadrático ponderado&#10;Base do cálculo do desvio padrão agrupado">?</span></span></th>
+                </tr>
+              </thead>
               <tbody id="p2-detail-body"></tbody>
               <tfoot id="p2-detail-foot"></tfoot>
             </table>
@@ -230,12 +316,11 @@
   </div>
 </div>
 
-
-
-<script src="script.js"></script>
-
-<div id="lb" onclick="document.getElementById('lb').style.display='none'" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;cursor:zoom-out;">
+<div id="lb" onclick="document.getElementById('lb').style.display='none'"
+  style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;cursor:zoom-out;">
   <img src="jefferson.png" style="max-width:80vw;max-height:80vh;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,0.9);" onclick="event.stopPropagation()">
 </div>
+
+<script src="script.js"></script>
 </body>
 </html>
