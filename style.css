@@ -450,10 +450,8 @@ table.data-table tr:nth-child(even) { background: rgba(200,225,255,0.15); }
 .result-cell-value { font-size: 17px; font-weight: 700; color: #0d2860; font-variant-numeric: tabular-nums; }
 .msg-error { padding: 8px 14px; background: rgba(255,100,80,0.12); border: 1px solid rgba(200,60,40,0.3); border-radius: 4px; color: #8a1010; font-size: 12px; margin-top: 8px; }
 .step-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 4px; }
-.step-table th { background: rgba(50,100,180,0.1); padding: 5px 8px; text-align: right; font-weight: 700; color: #1a3a80; border: 1px solid rgba(80,140,210,0.25); white-space: nowrap; }
-.step-table th:first-child { text-align: center; }
-.step-table td { padding: 4px 8px; border: 1px solid rgba(80,140,210,0.15); text-align: right; color: #1a2e60; }
-.step-table td:first-child { text-align: center; }
+.step-table th { background: rgba(50,100,180,0.1); padding: 5px 8px; text-align: center; font-weight: 700; color: #1a3a80; border: 1px solid rgba(80,140,210,0.25); white-space: nowrap; }
+.step-table td { padding: 4px 8px; border: 1px solid rgba(80,140,210,0.15); text-align: center; color: #1a2e60; }
 .step-table tr:nth-child(even) { background: rgba(180,215,255,0.1); }
 .step-table tfoot td { background: rgba(50,100,180,0.08); font-weight: 700; color: #0d2060; }
 .results-detail { padding: 10px 14px; border-top: 1px solid rgba(80,140,210,0.2); }

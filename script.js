@@ -56,6 +56,22 @@ function calcP0() {
   document.getElementById('p0-std').textContent = fmt(std);
   document.getElementById('p0-n').textContent = n;
   document.getElementById('p0-sorted').textContent = sorted.join('  ·  ');
+
+  const sumSq = data.reduce((s, v) => s + Math.pow(v - mean, 2), 0);
+  const modeValStr = (new Set(Object.values(freq)).size === 1 && n > 1)
+    ? 'Amodal (todos os valores têm a mesma frequência)'
+    : modes.map(fmt).join(' | ');
+  const medianNote = n % 2 === 1
+    ? `elemento central (posição ${Math.floor(n / 2) + 1} do rol)`
+    : `média dos elementos nas posições ${n / 2} e ${n / 2 + 1} do rol`;
+
+  document.getElementById('p0-formulas').innerHTML = `
+    <b>Média:</b> x̄ = Σxᵢ / n = ${data.reduce((s, v) => s + v, 0)} / ${n} = <b>${fmt(mean)}</b><br>
+    <b>Mediana:</b> ${medianNote} → Md = <b>${fmt(median)}</b><br>
+    <b>Moda:</b> valor(es) com maior frequência (f = ${maxF}) → Mo = <b>${modeValStr}</b><br>
+    <b>Amplitude:</b> AT = Xmáx − Xmín = ${fmt(sorted[n - 1])} − ${fmt(sorted[0])} = <b>${fmt(range)}</b><br>
+    <b>Desvio Padrão:</b> σ = √[Σ(xᵢ−x̄)² / n] = √[${fmt(sumSq)} / ${n}] = <b>${fmt(std)}</b>
+  `;
   document.getElementById('p0-results').style.display = 'block';
 }
 
@@ -91,6 +107,11 @@ function calcP1() {
   const vals = Object.keys(freqMap).map(Number).sort((a, b) => a - b);
   const freqs = vals.map(v => freqMap[v]);
   const n = freqs.reduce((a, b) => a + b, 0);
+
+  // Rol: expande os dados na ordem crescente
+  const rol = [];
+  vals.forEach((v, i) => { for (let j = 0; j < freqs[i]; j++) rol.push(v); });
+  document.getElementById('p1-sorted').textContent = rol.join('  ·  ');
   const sumXF = vals.reduce((s, v, i) => s + v * freqs[i], 0);
   const mean = sumXF / n;
   const range = vals[vals.length - 1] - vals[0];
@@ -134,6 +155,15 @@ function calcP1() {
   document.getElementById('p1-detail-body').innerHTML = body;
   document.getElementById('p1-detail-foot').innerHTML =
     `<tr><td><b>Σ</b></td><td><b>${n}</b></td><td>—</td><td><b>${fmt(sxf)}</b></td><td><b>${fmt(sumDev)}</b></td></tr>`;
+
+  const modeValStr = allSame ? 'Amodal (todas as frequências são iguais)' : modeStr;
+  document.getElementById('p1-formulas').innerHTML = `
+    <b>Média:</b> x̄ = Σ(xᵢ·fᵢ) / Σfᵢ = ${fmt(sxf)} / ${n} = <b>${fmt(mean)}</b><br>
+    <b>Mediana:</b> valor de xᵢ onde Fac ≥ n/2 = ${fmt(half)} → Md = <b>${fmt(median)}</b><br>
+    <b>Moda:</b> valor(es) com maior frequência (fᵢ = ${maxF}) → Mo = <b>${modeValStr}</b><br>
+    <b>Amplitude:</b> AT = Xmáx − Xmín = ${fmt(vals[vals.length - 1])} − ${fmt(vals[0])} = <b>${fmt(range)}</b><br>
+    <b>Desvio Padrão:</b> σ = √[Σfᵢ(xᵢ−x̄)² / n] = √[${fmt(sumDev)} / ${n}] = <b>${fmt(std)}</b>
+  `;
   document.getElementById('p1-results').style.display = 'block';
 }
 
@@ -160,6 +190,9 @@ function calcP2() {
   const n = data.length;
   const dataMin = sorted[0];
   const dataMax = sorted[n - 1];
+
+  // Rol
+  document.getElementById('p2-sorted').textContent = sorted.join('  ·  ');
 
   let k = parseInt(document.getElementById('p2-nclasses').value);
   if (isNaN(k) || k < 2) k = Math.ceil(1 + 3.322 * Math.log10(n));
