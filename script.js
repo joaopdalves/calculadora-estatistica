@@ -17,8 +17,11 @@ function showError(id, msg) {
 }
 
 function switchTab(idx) {
+  const body = document.querySelector('.window-body');
+  body.classList.add('no-scroll');
   document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
   document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+  setTimeout(() => body.classList.remove('no-scroll'), 230);
 }
 
 function calcP0() {
@@ -64,7 +67,6 @@ function exampleP0() {
   document.getElementById('p0-input').value = '4 7 2 9 5 7 3 8 7 1 6 5 4 3 7';
 }
 
-/* ── P1 ── */
 function clearP1() {
   document.getElementById('p1-input').value = '';
   document.getElementById('p1-results').style.display = 'none';
@@ -218,6 +220,208 @@ function tick(){
 }
 
 (()=>{ tick(); setInterval(tick,10000); })();
+
+(function () {
+  const win = document.querySelector('.window');
+  const taskbarApp = document.querySelector('.taskbar-app');
+  const desktopIcon = document.getElementById('desktop-icon');
+  let isMaximized = false;
+  let isMinimized = false;
+  let isClosed = false;
+
+  const ANIMS = ['anim-open','anim-close','anim-minimize','anim-restore','anim-maximize','anim-unmaximize'];
+  function clearAnims() { win.classList.remove(...ANIMS); }
+
+  function playAnim(cls, duration, after) {
+    clearAnims();
+    
+    void win.offsetWidth;
+    win.classList.add(cls);
+    setTimeout(() => { clearAnims(); if (after) after(); }, duration);
+  }
+
+  win.style.display = '';
+  playAnim('anim-open', 230, null);
+
+  document.querySelector('.win-btn-min').addEventListener('click', () => {
+    if (isClosed || isMinimized) return;
+    playAnim('anim-minimize', 210, () => {
+      isMinimized = true;
+      win.classList.add('minimized');
+    });
+    taskbarApp.style.opacity = '0.55';
+    taskbarApp.title = 'Clique para restaurar';
+    taskbarApp.style.cursor = 'pointer';
+  });
+
+  taskbarApp.addEventListener('click', () => {
+    if (isClosed) return;
+    if (isMinimized) {
+      isMinimized = false;
+      win.classList.remove('minimized');
+      taskbarApp.style.opacity = '1';
+      taskbarApp.title = '';
+      taskbarApp.style.cursor = 'default';
+      playAnim('anim-restore', 230, null);
+    }
+  });
+
+  document.querySelector('.win-btn-max').addEventListener('click', () => {
+    if (isClosed) return;
+    if (!isMaximized) {
+      clearAnims();
+      void win.offsetWidth;
+      win.classList.add('maximized', 'anim-maximize');
+      setTimeout(() => { clearAnims(); }, 200);
+    } else {
+      win.classList.remove('maximized');
+      clearAnims();
+      void win.offsetWidth;
+      win.classList.add('anim-unmaximize');
+      setTimeout(() => { clearAnims(); }, 180);
+    }
+    isMaximized = !isMaximized;
+  });
+
+  document.querySelector('.win-btn-close').addEventListener('click', () => {
+    if (isClosed) return;
+    playAnim('anim-close', 190, () => {
+      isClosed = true;
+      isMinimized = false;
+      isMaximized = false;
+      win.classList.remove('minimized', 'maximized');
+      win.style.display = 'none';
+      taskbarApp.style.display = 'none';
+      desktopIcon.classList.remove('hidden');
+    });
+  });
+
+  let clickCount = 0;
+  let clickTimer = null;
+  desktopIcon.addEventListener('click', () => {
+    desktopIcon.classList.add('selected');
+    clickCount++;
+    if (clickCount === 1) {
+      clickTimer = setTimeout(() => { clickCount = 0; }, 400);
+    } else if (clickCount >= 2) {
+      clearTimeout(clickTimer);
+      clickCount = 0;
+      isClosed = false;
+      desktopIcon.classList.remove('selected');
+      desktopIcon.classList.add('hidden');
+      win.style.display = '';
+      win.classList.remove('minimized', 'maximized');
+      isMinimized = false;
+      isMaximized = false;
+      taskbarApp.style.display = '';
+      taskbarApp.style.opacity = '1';
+      taskbarApp.title = '';
+      taskbarApp.style.cursor = 'default';
+      playAnim('anim-open', 230, null);
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!desktopIcon.contains(e.target)) {
+      desktopIcon.classList.remove('selected');
+    }
+  });
+
+  window.openCalculadora = function () {
+    if (isClosed) {
+      isClosed = false;
+      desktopIcon.classList.add('hidden');
+      win.style.display = '';
+      win.classList.remove('minimized', 'maximized');
+      isMinimized = false;
+      isMaximized = false;
+      taskbarApp.style.display = '';
+      taskbarApp.style.opacity = '1';
+      taskbarApp.title = '';
+      taskbarApp.style.cursor = 'default';
+      playAnim('anim-open', 230, null);
+    } else if (isMinimized) {
+      isMinimized = false;
+      win.classList.remove('minimized');
+      taskbarApp.style.opacity = '1';
+      taskbarApp.title = '';
+      taskbarApp.style.cursor = 'default';
+      playAnim('anim-restore', 230, null);
+    }
+    
+  };
+})();
+
+const startBtn = document.querySelector('.start-btn');
+const startMenu = document.getElementById('start-menu');
+const startMenuOverlay = document.getElementById('start-menu-overlay');
+
+function openStartMenu() {
+  startMenu.classList.add('open');
+  startMenuOverlay.classList.add('active');
+}
+
+function closeStartMenu() {
+  if (!startMenu.classList.contains('open')) return;
+  startMenu.classList.remove('open');
+  startMenu.classList.add('closing');
+  startMenuOverlay.classList.remove('active');
+  setTimeout(() => { startMenu.classList.remove('closing'); }, 150);
+}
+
+startBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (startMenu.classList.contains('open')) {
+    closeStartMenu();
+  } else {
+    openStartMenu();
+  }
+});
+
+startMenuOverlay.addEventListener('click', closeStartMenu);
+
+(function () {
+  const wallpaperEl = document.createElement('img');
+  wallpaperEl.id = 'wallpaper-bg';
+  wallpaperEl.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;z-index:-1;display:none;pointer-events:none;transition:opacity 0.4s ease;opacity:0;';
+  document.body.appendChild(wallpaperEl);
+  window._wallpaperEl = wallpaperEl;
+})();
+
+function setWallpaper(imgPath) {
+  const el = window._wallpaperEl;
+  const isFirst = el.style.display === 'none';
+  el.onload = function () {
+    document.body.style.backgroundImage = 'none';
+    el.style.display = 'block';
+    requestAnimationFrame(() => { el.style.opacity = '1'; });
+    closeStartMenu();
+  };
+  el.onerror = function () {
+    alert('Não foi possível carregar "' + imgPath + '". Verifique se o arquivo está na mesma pasta do site.');
+    closeStartMenu();
+  };
+  el.style.opacity = '0';
+  setTimeout(() => { el.src = imgPath; }, isFirst ? 0 : 200);
+}
+
+(function () {
+  const smCalcItem = document.getElementById('sm-calc-item');
+  let smClickCount = 0;
+  let smClickTimer = null;
+
+  smCalcItem.addEventListener('click', () => {
+    smClickCount++;
+    if (smClickCount === 1) {
+      smClickTimer = setTimeout(() => { smClickCount = 0; }, 400);
+    } else if (smClickCount >= 2) {
+      clearTimeout(smClickTimer);
+      smClickCount = 0;
+      closeStartMenu();
+      window.openCalculadora();
+    }
+  });
+})();
 
 const ttBox = document.getElementById('tooltip-box');
 document.querySelectorAll('.th-tip').forEach(el => {

@@ -10,6 +10,61 @@
 
 <div id="tooltip-box"></div>
 
+<div id="start-menu-overlay"></div>
+
+<div id="start-menu">
+  <div class="start-menu-top">
+    <div class="start-menu-avatar" id="avatar-btn" title="Clique para ver foto" style="cursor:pointer;" onclick="event.stopPropagation();closeStartMenu();document.getElementById('lb').style.display='flex'"><img src="jefferson.png" alt="Jefferson Biajone"></div>
+    <div class="start-menu-username">Jefferson Biajone</div>
+  </div>
+  <div class="start-menu-body">
+    <div class="start-menu-left">
+      <div class="sm-section-label">Arquivos Recentes</div>
+      <div class="sm-item" id="sm-betinha" onclick="setWallpaper('betinha.png')" title="Definir como papel de parede">
+        <img src="betinha.png" alt="betinha" onerror="this.style.display='none';this.nextSibling.querySelector('small').textContent='Imagem não encontrada'">
+        <div class="sm-item-text">
+          betinha.png
+          <small>Papel de parede · clique para aplicar</small>
+        </div>
+      </div>
+      <div class="sm-divider"></div>
+      <div class="sm-item" id="sm-calc-item">
+        <img src="beta.png" alt="Calculadora" onerror="this.style.fontSize='24px';this.removeAttribute('src')">
+        <div class="sm-item-text">
+          Calculadora Estatística
+          <small>Duplo clique para abrir</small>
+        </div>
+      </div>
+    </div>
+    <div class="start-menu-right">
+      <div class="sm-right-group">
+        <div class="sm-right-item"><span>🖥️</span> Computador</div>
+        <div class="sm-right-item"><span>📁</span> Documentos</div>
+        <div class="sm-right-item"><span>🖼️</span> Imagens</div>
+        <div class="sm-right-item"><span>🎵</span> Músicas</div>
+        <div class="sm-divider" style="background:rgba(255,255,255,0.1);margin:4px 6px;"></div>
+        <div class="sm-right-item"><span>⚙️</span> Painel de Controle</div>
+        <div class="sm-right-item"><span>🔍</span> Pesquisar</div>
+        <div class="sm-right-item"><span>❓</span> Ajuda</div>
+      </div>
+      <div class="sm-right-bottom">
+        <div class="sm-shutdown-btn">⏻ Desligar</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="trash-icon" id="trash-icon" title="Lixeira de Reciclagem">
+  <img src="lixeira.png" alt="Lixeira" width="48" height="48" style="object-fit:contain;display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));">
+  <span>Lixeira</span>
+</div>
+
+<div class="desktop-icon hidden" id="desktop-icon" title="Duplo clique para abrir">
+  <img src="beta.png" alt="Calculadora Estatística">
+  <span>Calculadora Estatística</span>
+</div>
+
+
 <div class="taskbar">
   <div class="start-btn">
     <div class="start-icon">
@@ -17,13 +72,13 @@
     </div>
     Iniciar
   </div>
-  <div class="taskbar-app"><img src="beta.png" width="16" height="16" style="object-fit:contain;display:inline-block;vertical-align:middle;border-radius:3px;"> Calculadora Estatística 1.0</div>
+  <div class="taskbar-app"><img src="beta.png" width="16" height="16" style="object-fit:contain;display:inline-block;vertical-align:middle;border-radius:3px;"> Calculadora Estatística</div>
   <div class="taskbar-clock" id="clock"></div>
 </div>
 
 <div class="window">
   <div class="title-bar">
-    <div class="title-text">Calculadora Estatística Beta da Montanha 1.0</div>
+    <div class="title-text">Calculadora Estatística</div>
     <div class="win-controls">
       <div class="win-btn win-btn-min">─</div>
       <div class="win-btn win-btn-max"></div>
@@ -57,7 +112,7 @@
       <div class="btn-row">
         <button class="btn btn-primary" onclick="calcP0()">▶ Calcular</button>
         <button class="btn btn-secondary" onclick="clearP0()">✕ Limpar</button>
-        <button class="btn btn-secondary" onclick="exampleP0()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#a8d4f5" style="display:inline-block;vertical-align:middle;"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0a2645" stroke-width="0.5"/></svg> Exemplo</button>
+        <button class="btn btn-secondary" onclick="exampleP0()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/></svg> Exemplo</button>
       </div>
       <div id="p0-error"></div>
       <div id="p0-results" class="results-panel" style="display:none;">
@@ -87,7 +142,7 @@
       <div class="btn-row">
         <button class="btn btn-primary" onclick="calcP1()">▶ Calcular</button>
         <button class="btn btn-secondary" onclick="clearP1()">✕ Limpar</button>
-        <button class="btn btn-secondary" onclick="exampleP1()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#a8d4f5" style="display:inline-block;vertical-align:middle;"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#1e6dc4" stroke-width="0.5"/></svg> Exemplo</button>
+        <button class="btn btn-secondary" onclick="exampleP1()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/></svg> Exemplo</button>
       </div>
       <div id="p1-error"></div>
       <div id="p1-results" class="results-panel" style="display:none;">
@@ -136,7 +191,7 @@
       <div class="btn-row">
         <button class="btn btn-primary" onclick="calcP2()">▶ Calcular</button>
         <button class="btn btn-secondary" onclick="clearP2()">✕ Limpar</button>
-        <button class="btn btn-secondary" onclick="exampleP2()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#a8d4f5" style="display:inline-block;vertical-align:middle;"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#1e6dc4" stroke-width="0.5"/></svg> Exemplo</button>
+        <button class="btn btn-secondary" onclick="exampleP2()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/></svg> Exemplo</button>
       </div>
       <div id="p2-error"></div>
       <div id="p2-results" class="results-panel" style="display:none;">
@@ -175,6 +230,12 @@
   </div>
 </div>
 
+
+
 <script src="script.js"></script>
+
+<div id="lb" onclick="document.getElementById('lb').style.display='none'" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;cursor:zoom-out;">
+  <img src="jefferson.png" style="max-width:80vw;max-height:80vh;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,0.9);" onclick="event.stopPropagation()">
+</div>
 </body>
 </html>
