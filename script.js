@@ -1,7 +1,6 @@
 const fmt = v => {
   if (v === null || v === undefined || isNaN(v)) return '—';
-  const n = Math.round(v * 10000) / 10000;
-  return n.toString().replace('.', ',');
+  return parseFloat(v).toFixed(2).replace('.', ',');
 };
 
 function parseNumbers(str) {
@@ -14,6 +13,14 @@ function parseNumbers(str) {
 function showError(id, msg) {
   document.getElementById(id).innerHTML = msg
     ? `<div class="msg-error">⚠️ ${msg}</div>` : '';
+}
+
+function showResults(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('anim-in');
+  void el.offsetWidth;
+  el.style.display = 'block';
+  el.classList.add('anim-in');
 }
 
 function switchTab(idx) {
@@ -29,7 +36,12 @@ function calcP0() {
   const raw = document.getElementById('p0-input').value.trim();
   if (!raw) { showError('p0-error', 'Digite os dados.'); return; }
   const data = parseNumbers(raw);
-  if (data.length < 2) { showError('p0-error', 'Insira pelo menos 2 valores numéricos.'); return; }
+  if (data.length < 2) {
+    showError('p0-error', 'Insira pelo menos <b>2</b> valores numéricos.');
+    document.getElementById('p0-group-hint').innerHTML = '';
+    document.getElementById('p0-results').style.display = 'none';
+    return;
+  }
 
   const sorted = [...data].sort((a, b) => a - b);
   const n = data.length;
@@ -48,6 +60,25 @@ function calcP0() {
   const modeStr = (new Set(Object.values(freq)).size === 1 && n > 1)
     ? 'Amodal'
     : modes.map(fmt).join(' | ');
+
+  // Bloquear se n > 10: redirecionar para agrupados
+  const p0warn = document.getElementById('p0-group-hint');
+  if (n > 10) {
+    const destTab = n >= 20 ? 2 : 1;
+    const destLabel = n >= 20 ? 'Agrupados c/ Intervalo' : 'Agrupados s/ Intervalo';
+    p0warn.innerHTML = `
+      <div class="msg-info msg-info-block">
+        <span style="font-size:13px;">⚠️ Seu conjunto possui <b>${n} elementos</b>. Para 11 ou mais elementos, a análise por dados não agrupados não é adequada para tabulação.</span>
+        <span style="font-size:11px;opacity:0.85;">Utilize o painel <b>${destLabel}</b> para uma análise correta.</span>
+        <button class="btn-redirect" onclick="switchTab(${destTab});document.getElementById('p0-group-hint').innerHTML='';">
+          Ir para ${destLabel}
+        </button>
+      </div>`;
+    document.getElementById('p0-results').style.display = 'none';
+    return;
+  } else {
+    p0warn.innerHTML = '';
+  }
 
   document.getElementById('p0-mean').textContent = fmt(mean);
   document.getElementById('p0-mode').textContent = modeStr;
@@ -72,17 +103,20 @@ function calcP0() {
     <b>Amplitude:</b> AT = Xmáx − Xmín = ${fmt(sorted[n - 1])} − ${fmt(sorted[0])} = <b>${fmt(range)}</b><br>
     <b>Desvio Padrão:</b> σ = √[Σ(xᵢ−x̄)² / n] = √[${fmt(sumSq)} / ${n}] = <b>${fmt(std)}</b>
   `;
-  document.getElementById('p0-results').style.display = 'block';
+  showResults('p0-results');
 }
 
 function clearP0() {
   document.getElementById('p0-input').value = '';
   document.getElementById('p0-results').style.display = 'none';
+  document.getElementById('p0-group-hint').innerHTML = '';
   showError('p0-error', '');
 }
 
 function exampleP0() {
-  document.getElementById('p0-input').value = '4 7 2 9 5 7 3 8 7 1 6 5 4 3 7';
+  const n = Math.floor(Math.random() * 9) + 2;
+  const vals = Array.from({ length: n }, () => Math.floor(Math.random() * 30) + 1);
+  document.getElementById('p0-input').value = vals.join(' ');
 }
 
 function clearP1() {
@@ -92,7 +126,14 @@ function clearP1() {
 }
 
 function exampleP1() {
-  document.getElementById('p1-input').value = '2 2 2 4 4 4 4 4 6 6 6 6 6 6 6 6 8 8 8 8 8 8 10 10 10 10 12 12';
+  const n = Math.floor(Math.random() * 9) + 11;
+  const base = Array.from({ length: Math.floor(Math.random() * 4) + 4 }, () =>
+    Math.floor(Math.random() * 18) * 2 + 2 // valores pares entre 2 e 36
+  );
+  const pool = [...base];
+  while (pool.length < n) pool.push(base[Math.floor(Math.random() * base.length)]);
+  pool.sort((a, b) => a - b);
+  document.getElementById('p1-input').value = pool.join(' ');
 }
 
 function calcP1() {
@@ -100,15 +141,37 @@ function calcP1() {
   const raw = document.getElementById('p1-input').value.trim();
   if (!raw) { showError('p1-error', 'Digite os dados.'); return; }
   const data = parseNumbers(raw);
-  if (data.length < 2) { showError('p1-error', 'Insira pelo menos 2 valores numéricos.'); return; }
+  const n = data.length;
+  if (n < 11) {
+    document.getElementById('p1-error').innerHTML = `
+      <div class="msg-info msg-info-block">
+        <span style="font-size:13px;">⚠️ Dados insuficientes (<b>${n} elemento${n > 1 ? 's' : ''}</b>). A tabulação agrupada s/ intervalo requer entre <b>11 e 19 elementos</b>.</span>
+        <span style="font-size:11px;opacity:0.85;">Utilize o painel <b>Dados Não Agrupados</b> para uma análise correta.</span>
+        <button class="btn-redirect" onclick="switchTab(0);document.getElementById('p1-error').innerHTML='';">
+          Ir para Dados Não Agrupados
+        </button>
+      </div>`;
+    document.getElementById('p1-results').style.display = 'none';
+    return;
+  }
+  if (n >= 20) {
+    document.getElementById('p1-error').innerHTML = `
+      <div class="msg-info msg-info-block">
+        <span style="font-size:13px;">⚠️ Seu conjunto possui <b>${n} elementos</b>. Para 20 ou mais elementos, a análise agrupada s/ intervalo não é adequada para tabulação.</span>
+        <span style="font-size:11px;opacity:0.85;">Utilize o painel <b>Agrupados c/ Intervalo</b> para uma análise correta.</span>
+        <button class="btn-redirect" onclick="switchTab(2);document.getElementById('p1-error').innerHTML='';">
+          Ir para Agrupados c/ Intervalo
+        </button>
+      </div>`;
+    document.getElementById('p1-results').style.display = 'none';
+    return;
+  }
 
   const freqMap = {};
   data.forEach(v => freqMap[v] = (freqMap[v] || 0) + 1);
   const vals = Object.keys(freqMap).map(Number).sort((a, b) => a - b);
   const freqs = vals.map(v => freqMap[v]);
-  const n = freqs.reduce((a, b) => a + b, 0);
 
-  // Rol: expande os dados na ordem crescente
   const rol = [];
   vals.forEach((v, i) => { for (let j = 0; j < freqs[i]; j++) rol.push(v); });
   document.getElementById('p1-sorted').textContent = rol.join('  ·  ');
@@ -159,12 +222,12 @@ function calcP1() {
   const modeValStr = allSame ? 'Amodal (todas as frequências são iguais)' : modeStr;
   document.getElementById('p1-formulas').innerHTML = `
     <b>Média:</b> x̄ = Σ(xᵢ·fᵢ) / Σfᵢ = ${fmt(sxf)} / ${n} = <b>${fmt(mean)}</b><br>
-    <b>Mediana:</b> valor de xᵢ onde Fac ≥ n/2 = ${fmt(half)} → Md = <b>${fmt(median)}</b><br>
+    <b>Mediana:</b> valor de xᵢ onde F ≥ n/2 = ${fmt(half)} → Md = <b>${fmt(median)}</b><br>
     <b>Moda:</b> valor(es) com maior frequência (fᵢ = ${maxF}) → Mo = <b>${modeValStr}</b><br>
     <b>Amplitude:</b> AT = Xmáx − Xmín = ${fmt(vals[vals.length - 1])} − ${fmt(vals[0])} = <b>${fmt(range)}</b><br>
     <b>Desvio Padrão:</b> σ = √[Σfᵢ(xᵢ−x̄)² / n] = √[${fmt(sumDev)} / ${n}] = <b>${fmt(std)}</b>
   `;
-  document.getElementById('p1-results').style.display = 'block';
+  showResults('p1-results');
 }
 
 function clearP2() {
@@ -175,7 +238,12 @@ function clearP2() {
 }
 
 function exampleP2() {
-  document.getElementById('p2-input').value = '12 18 23 27 31 35 38 42 45 49 51 55 58 62 67 14 20 25 29 33 37 41 44 48 53 57 61 65 19 24';
+  const n = Math.floor(Math.random() * 16) + 20;
+  const min = Math.floor(Math.random() * 20) + 5;
+  const spread = Math.floor(Math.random() * 60) + 40;
+  const vals = Array.from({ length: n }, () => Math.floor(Math.random() * spread) + min);
+  vals.sort((a, b) => a - b);
+  document.getElementById('p2-input').value = vals.join(' ');
   document.getElementById('p2-nclasses').value = '';
 }
 
@@ -184,7 +252,20 @@ function calcP2() {
   const raw = document.getElementById('p2-input').value.trim();
   if (!raw) { showError('p2-error', 'Digite os dados.'); return; }
   const data = parseNumbers(raw);
-  if (data.length < 4) { showError('p2-error', 'Insira pelo menos 4 valores para dados agrupados com intervalo.'); return; }
+  if (data.length < 20) {
+    const _destTab = data.length < 11 ? 0 : 1;
+    const _destLabel = data.length < 11 ? 'Dados Não Agrupados' : 'Agrupados s/ Intervalo';
+    document.getElementById('p2-error').innerHTML = `
+      <div class="msg-info msg-info-block">
+        <span style="font-size:13px;">⚠️ Seu conjunto possui <b>${data.length} elemento${data.length > 1 ? 's' : ''}</b>. Para agrupados c/ intervalo são necessários <b>20 ou mais elementos</b>.</span>
+        <span style="font-size:11px;opacity:0.85;">Utilize o painel <b>${_destLabel}</b> para uma análise correta.</span>
+        <button class="btn-redirect" onclick="switchTab(${_destTab});document.getElementById('p2-error').innerHTML='';">
+          Ir para ${_destLabel}
+        </button>
+      </div>`;
+    document.getElementById('p2-results').style.display = 'none';
+    return;
+  }
 
   const sorted = [...data].sort((a, b) => a - b);
   const n = data.length;
@@ -277,12 +358,12 @@ function calcP2() {
   document.getElementById('p2-formulas').innerHTML = `
     <b>Classes geradas:</b> ${kInfo} · amplitude h = ${fmt(h)}<br>
     <b>Média:</b> x̄ = Σ(mᵢ·fᵢ) / Σfᵢ = ${fmt(sMF)} / ${nTotal} = <b>${fmt(mean)}</b><br>
-    <b>Mediana:</b> Md = lᵢ + [(n/2 − Fac) / fᵢ] · h = ${fmt(mc.li)} + [(${fmt(half)} − ${mc.cumBefore}) / ${mc.f}] · ${fmt(hMc)} = <b>${fmt(median)}</b><br>
+    <b>Mediana:</b> Md = lᵢ + [(n/2 − F) / fᵢ] · h = ${fmt(mc.li)} + [(${fmt(half)} − ${mc.cumBefore}) / ${mc.f}] · ${fmt(hMc)} = <b>${fmt(median)}</b><br>
     <b>Moda (Czuber):</b> classe modal [${fmt(cls[moIdx].li)} – ${fmt(cls[moIdx].ls)}[  →  Mo = <b>${fmt(mo)}</b><br>
     <b>Amplitude:</b> AT = L<sub>k</sub> − l₁ = ${fmt(cls[cls.length - 1].ls)} − ${fmt(cls[0].li)} = <b>${fmt(range)}</b><br>
     <b>Desvio Padrão:</b> σ = √[Σfᵢ(mᵢ−x̄)² / n] = √[${fmt(sDev)} / ${nTotal}] = <b>${fmt(std)}</b>
   `;
-  document.getElementById('p2-results').style.display = 'block';
+  showResults('p2-results');
 }
 
 function rmRow(id) {

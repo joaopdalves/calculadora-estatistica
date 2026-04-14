@@ -127,6 +127,7 @@
         </button>
       </div>
       <div id="p0-error"></div>
+      <div id="p0-group-hint"></div>
       <div id="p0-results" class="results-panel" style="display:none;">
         <div class="results-header">📈 Resultados — Dados Não Agrupados</div>
         <div class="results-detail" style="border-top:none;">
@@ -202,7 +203,7 @@
                 <tr>
                   <th><span class="th-wrap">xᵢ <span class="th-tip" data-tip="Valor observado&#10;(cada número distinto do conjunto)">?</span></span></th>
                   <th><span class="th-wrap">fᵢ <span class="th-tip" data-tip="Frequência absoluta&#10;Quantas vezes xᵢ aparece nos dados">?</span></span></th>
-                  <th><span class="th-wrap">Fac <span class="th-tip" data-tip="Frequência acumulada&#10;Soma das frequências até esta linha">?</span></span></th>
+                  <th><span class="th-wrap">F <span class="th-tip" data-tip="Frequência acumulada&#10;Soma das frequências até esta linha">?</span></span></th>
                   <th><span class="th-wrap">xᵢ·fᵢ <span class="th-tip" data-tip="Valor × Frequência&#10;Usado para calcular a média ponderada">?</span></span></th>
                   <th><span class="th-wrap">(xᵢ−x̄)²·fᵢ <span class="th-tip" data-tip="Desvio quadrático ponderado&#10;Mede o quanto cada valor se afasta da média&#10;(base do desvio padrão)">?</span></span></th>
                 </tr>
@@ -222,7 +223,7 @@
             <div class="result-cell-value" id="p1-mode">—</div>
           </div>
           <div class="result-cell">
-            <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Valor onde a frequência acumulada&#10;atinge ou ultrapassa n/2">?</span></div>
+            <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Valor de xᵢ onde a frequência acumulada&#10;F atinge ou ultrapassa n/2">?</span></div>
             <div class="result-cell-value" id="p1-median">—</div>
           </div>
           <div class="result-cell">
@@ -289,7 +290,7 @@
                   <th><span class="th-wrap">Classe <span class="th-tip" data-tip="Intervalo de classe [lᵢ, Lᵢ[&#10;Agrupa valores próximos em faixas">?</span></span></th>
                   <th><span class="th-wrap">mᵢ <span class="th-tip" data-tip="Ponto médio da classe&#10;mᵢ = (Lim. inferior + Lim. superior) / 2">?</span></span></th>
                   <th><span class="th-wrap">fᵢ <span class="th-tip" data-tip="Frequência absoluta&#10;Quantos dados caem neste intervalo">?</span></span></th>
-                  <th><span class="th-wrap">Fac <span class="th-tip" data-tip="Frequência acumulada&#10;Soma das frequências até esta classe">?</span></span></th>
+                  <th><span class="th-wrap">F <span class="th-tip" data-tip="Frequência acumulada&#10;Soma das frequências até esta classe">?</span></span></th>
                   <th><span class="th-wrap">mᵢ·fᵢ <span class="th-tip" data-tip="Ponto médio × Frequência&#10;Usado para calcular a média das classes">?</span></span></th>
                   <th><span class="th-wrap">(mᵢ−x̄)²·fᵢ <span class="th-tip" data-tip="Desvio quadrático ponderado&#10;Base do cálculo do desvio padrão agrupado">?</span></span></th>
                 </tr>
@@ -309,7 +310,7 @@
             <div class="result-cell-value" id="p2-mode">—</div>
           </div>
           <div class="result-cell">
-            <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Interpolação linear na classe mediana&#10;Md = lᵢ + [(n/2 − Fac) / fᵢ] · h">?</span></div>
+            <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Interpolação linear na classe mediana&#10;Md = lᵢ + [(n/2 − F) / fᵢ] · h">?</span></div>
             <div class="result-cell-value" id="p2-median">—</div>
           </div>
           <div class="result-cell">

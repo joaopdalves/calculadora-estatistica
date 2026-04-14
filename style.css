@@ -448,7 +448,18 @@ table.data-table tr:nth-child(even) { background: rgba(200,225,255,0.15); }
 .result-cell { background: rgba(240,248,255,0.97); padding: 10px 14px; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .result-cell-label { font-size: 10.5px; color: #3a5a90; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap; text-align: center; }
 .result-cell-value { font-size: 17px; font-weight: 700; color: #0d2860; font-variant-numeric: tabular-nums; text-align: center; }
-.msg-error { padding: 8px 14px; background: rgba(255,100,80,0.12); border: 1px solid rgba(200,60,40,0.3); border-radius: 4px; color: #8a1010; font-size: 12px; margin-top: 8px; }
+@keyframes errorIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes resultsIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.results-panel.anim-in {
+  animation: resultsIn 0.25s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.msg-error { padding: 8px 14px; background: rgba(255,100,80,0.12); border: 1px solid rgba(200,60,40,0.3); border-radius: 4px; color: #8a1010; font-size: 12px; margin-top: 8px; text-align: center; animation: errorIn 0.22s ease; }
 .step-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 4px; }
 .step-table th { background: rgba(50,100,180,0.1); padding: 5px 8px; text-align: center; font-weight: 700; color: #1a3a80; border: 1px solid rgba(80,140,210,0.25); white-space: nowrap; }
 .step-table td { padding: 4px 8px; border: 1px solid rgba(80,140,210,0.15); text-align: center; color: #1a2e60; }
@@ -880,3 +891,25 @@ table.data-table tr:nth-child(even) { background: rgba(200,225,255,0.15); }
   70%  { transform: scale(1.04); }
   100% { opacity: 1; transform: scale(1); }
 }
+.msg-info { padding: 8px 14px; background: rgba(220,50,30,0.10); border: 1px solid rgba(200,50,30,0.4); border-radius: 4px; color: #7a0a0a; font-size: 12px; margin-top: 8px; animation: errorIn 0.22s ease; }
+
+.msg-info-block { display: flex; flex-direction: column; gap: 4px; align-items: center; text-align: center; }
+.btn-redirect {
+  display: block;
+  margin-top: 6px;
+  padding: 10px 28px;
+  background: linear-gradient(135deg, #b91c1c, #dc2626);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.4px;
+  transition: opacity 0.15s, transform 0.1s;
+  align-self: center;
+  width: fit-content;
+  box-shadow: 0 2px 8px rgba(180,20,20,0.35);
+  text-align: center;
+}
+.btn-redirect:hover { opacity: 0.88; transform: translateY(-1px); }
