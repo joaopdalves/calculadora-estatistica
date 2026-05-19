@@ -26,9 +26,34 @@ function showResults(id) {
 function switchTab(idx) {
   const body = document.querySelector('.window-body');
   body.classList.add('no-scroll');
-  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
-  document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+  const descSection = document.getElementById('desc-section');
+  const tabs = descSection.querySelectorAll('.tab');
+  const panels = descSection.querySelectorAll('.panel');
+  tabs.forEach((t, i) => t.classList.toggle('active', i === idx));
+  panels.forEach((p, i) => p.classList.toggle('active', i === idx));
   setTimeout(() => body.classList.remove('no-scroll'), 230);
+}
+
+function setMode(mode) {
+  const descSection = document.getElementById('desc-section');
+  const infSection = document.getElementById('inf-section');
+  const btnDesc = document.getElementById('mode-btn-desc');
+  const btnInf = document.getElementById('mode-btn-inf');
+  const subtitle = document.getElementById('app-subtitle');
+
+  if (mode === 'desc') {
+    descSection.style.display = '';
+    infSection.style.display = 'none';
+    btnDesc.classList.add('active');
+    btnInf.classList.remove('active');
+    subtitle.textContent = 'Tendência Central e Dispersão · Dados Não Agrupados e Agrupados';
+  } else {
+    descSection.style.display = 'none';
+    infSection.style.display = '';
+    btnDesc.classList.remove('active');
+    btnInf.classList.add('active');
+    subtitle.textContent = 'Estatística Inferencial · Distribuição de Poisson';
+  }
 }
 
 function calcP0() {
@@ -61,7 +86,6 @@ function calcP0() {
     ? 'Amodal'
     : modes.map(fmt).join(' | ');
 
-  // Bloquear se n > 10: redirecionar para agrupados
   const p0warn = document.getElementById('p0-group-hint');
   if (n > 10) {
     const destTab = n >= 20 ? 2 : 1;
@@ -128,7 +152,7 @@ function clearP1() {
 function exampleP1() {
   const n = Math.floor(Math.random() * 9) + 11;
   const base = Array.from({ length: Math.floor(Math.random() * 4) + 4 }, () =>
-    Math.floor(Math.random() * 18) * 2 + 2 // valores pares entre 2 e 36
+    Math.floor(Math.random() * 18) * 2 + 2
   );
   const pool = [...base];
   while (pool.length < n) pool.push(base[Math.floor(Math.random() * base.length)]);
@@ -272,7 +296,6 @@ function calcP2() {
   const dataMin = sorted[0];
   const dataMax = sorted[n - 1];
 
-  // Rol
   document.getElementById('p2-sorted').textContent = sorted.join('  ·  ');
 
   let k = parseInt(document.getElementById('p2-nclasses').value);
@@ -364,6 +387,239 @@ function calcP2() {
     <b>Desvio Padrão:</b> σ = √[Σfᵢ(mᵢ−x̄)² / n] = √[${fmt(sDev)} / ${nTotal}] = <b>${fmt(std)}</b>
   `;
   showResults('p2-results');
+}
+
+function poissonFatorial(n) {
+  if (n === 0 || n === 1) return 1;
+  let r = 1;
+  for (let i = 2; i <= n; i++) r *= i;
+  return r;
+}
+
+function poissonP(lambda, k) {
+  return (Math.exp(-lambda) * Math.pow(lambda, k)) / poissonFatorial(k);
+}
+
+function poissonAtMost(lambda, k) {
+  let sum = 0;
+  for (let i = 0; i <= k; i++) sum += poissonP(lambda, i);
+  return sum;
+}
+
+function poissonAtLeast(lambda, k) {
+  return 1 - poissonAtMost(lambda, k - 1);
+}
+
+function fmtProb(v) {
+  return v.toFixed(6).replace('.', ',');
+}
+
+function fmtPct(v) {
+  return (v * 100).toFixed(4).replace('.', ',') + '%';
+}
+
+function toggleAdjuste() {
+  const sec = document.getElementById('poisson-adj-section');
+  const btn = document.getElementById('adj-toggle');
+  const open = !sec.classList.contains('adj-open');
+  sec.classList.toggle('adj-open', open);
+  btn.classList.toggle('adj-active', open);
+}
+
+function clearPoisson() {
+  document.getElementById('p3-lambda').value = '';
+  document.getElementById('p3-k').value = '';
+  document.getElementById('p3-op').value = 'exact';
+  document.getElementById('p3-int-base').value = '';
+  document.getElementById('p3-int-target').value = '';
+  document.getElementById('p3-results').style.display = 'none';
+  document.getElementById('p3-example-note').style.display = 'none';
+  showError('p3-error', '');
+  const sec = document.getElementById('poisson-adj-section');
+  const btn = document.getElementById('adj-toggle');
+  sec.classList.remove('adj-open');
+  btn.classList.remove('adj-active');
+}
+
+const POISSON_EXAMPLES = [
+  {
+    lambda: 3,
+    k: 5,
+    op: 'exact',
+    base: '',
+    target: '',
+    note: '📋 Exemplo: Uma central recebe em média 3 ligações por minuto. Qual a probabilidade de receber exatamente 5 ligações em um minuto?'
+  },
+  {
+    lambda: 2,
+    k: 3,
+    op: 'atmost',
+    base: '',
+    target: '',
+    note: '📋 Exemplo: Uma padaria vende em média 2 bolos especiais por dia. Qual a probabilidade de vender no máximo 3 bolos em um dia?'
+  },
+  {
+    lambda: 4,
+    k: 2,
+    op: 'atleast',
+    base: '',
+    target: '',
+    note: '📋 Exemplo: Um hospital registra em média 4 emergências por hora. Qual a probabilidade de ocorrer pelo menos 2 emergências em uma hora?'
+  }
+];
+
+let _lastExampleIdx = -1;
+
+function examplePoisson() {
+  let idx;
+  do { idx = Math.floor(Math.random() * POISSON_EXAMPLES.length); } while (idx === _lastExampleIdx && POISSON_EXAMPLES.length > 1);
+  _lastExampleIdx = idx;
+  const ex = POISSON_EXAMPLES[idx];
+
+  document.getElementById('p3-lambda').value = ex.lambda;
+  document.getElementById('p3-k').value = ex.k;
+  document.getElementById('p3-op').value = ex.op;
+
+  const sec = document.getElementById('poisson-adj-section');
+  const btn = document.getElementById('adj-toggle');
+
+  if (ex.base) {
+    document.getElementById('p3-int-base').value = ex.base;
+    document.getElementById('p3-int-target').value = ex.target;
+    sec.classList.add('adj-open');
+    btn.classList.add('adj-active');
+  } else {
+    document.getElementById('p3-int-base').value = '';
+    document.getElementById('p3-int-target').value = '';
+    sec.classList.remove('adj-open');
+    btn.classList.remove('adj-active');
+  }
+
+  const noteEl = document.getElementById('p3-example-note');
+  noteEl.textContent = ex.note;
+  noteEl.style.display = 'block';
+
+  showError('p3-error', '');
+  document.getElementById('p3-results').style.display = 'none';
+}
+
+function calcPoisson() {
+  showError('p3-error', '');
+
+  const lambdaRaw = parseFloat(document.getElementById('p3-lambda').value.replace(',', '.'));
+  const kRaw = parseInt(document.getElementById('p3-k').value);
+  const op = document.getElementById('p3-op').value;
+  const baseRaw = parseFloat(document.getElementById('p3-int-base').value.replace(',', '.'));
+  const targetRaw = parseFloat(document.getElementById('p3-int-target').value.replace(',', '.'));
+
+  if (isNaN(lambdaRaw) || lambdaRaw <= 0) {
+    showError('p3-error', 'Informe uma taxa média λ válida (número positivo).');
+    return;
+  }
+  if (isNaN(kRaw) || kRaw < 0 || !Number.isInteger(kRaw)) {
+    showError('p3-error', 'Informe um número de ocorrências k válido (inteiro ≥ 0).');
+    return;
+  }
+
+  let lambda = lambdaRaw;
+  let ajusteInfo = '';
+
+  const hasBase = !isNaN(baseRaw) && baseRaw > 0;
+  const hasTarget = !isNaN(targetRaw) && targetRaw > 0;
+
+  if (hasBase && hasTarget) {
+    lambda = lambdaRaw * (targetRaw / baseRaw);
+    ajusteInfo = `λ ajustado = ${lambdaRaw} × (${targetRaw} / ${baseRaw}) = <b>${lambda.toFixed(4).replace('.', ',')}</b><br>`;
+  } else if (hasBase !== hasTarget) {
+    showError('p3-error', 'Preencha os dois campos de intervalo (base e alvo) ou deixe ambos em branco.');
+    return;
+  }
+
+  const k = kRaw;
+
+  let prob;
+  let labelText;
+  let stepsHtml = '';
+
+  const eMinusL = Math.exp(-lambda);
+  const lambdaK = Math.pow(lambda, k);
+  const kFat = poissonFatorial(k);
+  const pExact = poissonP(lambda, k);
+
+  const formulaBase = `P(X = k) = (e<sup>−λ</sup> · λ<sup>k</sup>) / k!`;
+
+  if (op === 'exact') {
+    prob = pExact;
+    labelText = `P(X = ${k})`;
+    stepsHtml = `
+      ${ajusteInfo}
+      <b>Fórmula:</b> ${formulaBase}<br>
+      <b>Substituindo:</b> P(X = ${k}) = (e<sup>−${lambda.toFixed(4).replace('.', ',')}</sup> · ${lambda.toFixed(4).replace('.', ',')} <sup>${k}</sup>) / ${k}!<br>
+      <b>e<sup>−λ</sup></b> = e<sup>−${lambda.toFixed(4).replace('.', ',')}</sup> = ${eMinusL.toFixed(6).replace('.', ',')}<br>
+      <b>λ<sup>k</sup></b> = ${lambda.toFixed(4).replace('.', ',')} <sup>${k}</sup> = ${lambdaK.toFixed(6).replace('.', ',')}<br>
+      <b>k!</b> = ${k}! = ${kFat}<br>
+      <b>P(X = ${k})</b> = (${eMinusL.toFixed(6).replace('.', ',')} × ${lambdaK.toFixed(6).replace('.', ',')}) / ${kFat} = <b>${fmtProb(prob)}</b>
+    `;
+  } else if (op === 'atmost') {
+    prob = poissonAtMost(lambda, k);
+    labelText = `P(X ≤ ${k})`;
+    let partes = [];
+    let somaDetalhada = '';
+    for (let i = 0; i <= k; i++) {
+      const pi = poissonP(lambda, i);
+      partes.push(`P(X=${i}) = ${fmtProb(pi)}`);
+      somaDetalhada += (i > 0 ? ' + ' : '') + fmtProb(pi);
+    }
+    stepsHtml = `
+      ${ajusteInfo}
+      <b>Fórmula:</b> P(X ≤ ${k}) = Σ P(X = i) para i = 0 até ${k}<br>
+      <b>Parcelas:</b><br>
+      ${partes.map(p => '&nbsp;&nbsp;' + p).join('<br>')}<br>
+      <b>Soma:</b> ${somaDetalhada} = <b>${fmtProb(prob)}</b>
+    `;
+  } else {
+    prob = poissonAtLeast(lambda, k);
+    labelText = `P(X ≥ ${k})`;
+    const complement = poissonAtMost(lambda, k - 1);
+    let partes = [];
+    for (let i = 0; i <= k - 1; i++) {
+      const pi = poissonP(lambda, i);
+      partes.push(`P(X=${i}) = ${fmtProb(pi)}`);
+    }
+    stepsHtml = `
+      ${ajusteInfo}
+      <b>Fórmula:</b> P(X ≥ ${k}) = 1 − P(X ≤ ${k - 1})<br>
+      <b>Parcelas de P(X ≤ ${k - 1}):</b><br>
+      ${k === 0 ? '&nbsp;&nbsp;(nenhuma — P(X ≤ −1) = 0)' : partes.map(p => '&nbsp;&nbsp;' + p).join('<br>')}<br>
+      <b>P(X ≤ ${k - 1})</b> = ${fmtProb(complement)}<br>
+      <b>P(X ≥ ${k})</b> = 1 − ${fmtProb(complement)} = <b>${fmtProb(prob)}</b>
+    `;
+  }
+
+  document.getElementById('p3-result-label').textContent = labelText;
+  document.getElementById('p3-result-value').textContent = fmtProb(prob) + '  (' + fmtPct(prob) + ')';
+  document.getElementById('p3-steps').innerHTML = stepsHtml;
+
+  const tableLimit = Math.max(k + 4, 10);
+  let distBody = '';
+  let runningSum = 0;
+  for (let i = 0; i <= tableLimit; i++) {
+    const pi = poissonP(lambda, i);
+    runningSum += pi;
+    let highlight = false;
+    if (op === 'exact' && i === k) highlight = true;
+    if (op === 'atmost' && i <= k) highlight = true;
+    if (op === 'atleast' && i >= k) highlight = true;
+    distBody += `<tr${highlight ? ' class="highlight-row"' : ''}>
+      <td>${i}</td>
+      <td>${fmtProb(pi)}</td>
+      <td>${fmtPct(pi)}</td>
+    </tr>`;
+    if (i > tableLimit && runningSum > 0.9999) break;
+  }
+  document.getElementById('p3-dist-body').innerHTML = distBody;
+
+  showResults('p3-results');
 }
 
 function rmRow(id) {
