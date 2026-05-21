@@ -1,3 +1,14 @@
+
+var _zBase = 50;      
+var _zTop  = _zBase;  
+
+function bringToFront(el) {
+  if (!el) return;
+  _zTop++;
+  el.style.zIndex = _zTop;
+}
+
+
 const fmt = v => {
   if (v === null || v === undefined || isNaN(v)) return '—';
   return parseFloat(v).toFixed(2).replace('.', ',');
@@ -638,6 +649,7 @@ function tick() {
 
 (function () {
   const win = document.querySelector('.window');
+  win.addEventListener('mousedown', function () { bringToFront(win); }, true);
   const taskbarApp = document.querySelector('.taskbar-app');
   const desktopIcon = document.getElementById('desktop-icon');
   let isMaximized = false;
@@ -654,7 +666,14 @@ function tick() {
     clearAnims();
     void win.offsetWidth;
     win.classList.add(cls);
-    setTimeout(() => { clearAnims(); if (after) after(); }, duration);
+    bringToFront(win);
+    var animZ = _zTop + 1000;
+    win.style.zIndex = animZ;
+    setTimeout(() => {
+      clearAnims();
+      bringToFront(win);
+      if (after) after();
+    }, duration);
   }
 
   win.style.display = '';
@@ -681,21 +700,26 @@ function tick() {
       taskbarApp.style.cursor = 'default';
       playAnim('anim-restore', 230, null);
     }
+    bringToFront(win);
+    win.focus && win.focus();
   });
 
   document.querySelector('.win-btn-max').addEventListener('click', () => {
     if (isClosed) return;
+    const calcMaxIcon = document.getElementById('calc-max-icon');
     if (!isMaximized) {
       clearAnims();
       void win.offsetWidth;
       win.classList.add('maximized', 'anim-maximize');
       setTimeout(() => { clearAnims(); }, 200);
+      if (calcMaxIcon) calcMaxIcon.classList.add('restore');
     } else {
       win.classList.remove('maximized');
       clearAnims();
       void win.offsetWidth;
       win.classList.add('anim-unmaximize');
       setTimeout(() => { clearAnims(); }, 180);
+      if (calcMaxIcon) calcMaxIcon.classList.remove('restore');
     }
     isMaximized = !isMaximized;
   });
@@ -710,6 +734,8 @@ function tick() {
       win.style.display = 'none';
       taskbarApp.style.display = 'none';
       desktopIcon.classList.remove('hidden');
+      const calcMaxIcon = document.getElementById('calc-max-icon');
+      if (calcMaxIcon) calcMaxIcon.classList.remove('restore');
     });
   });
 
@@ -765,7 +791,24 @@ function tick() {
       taskbarApp.title = '';
       taskbarApp.style.cursor = 'default';
       playAnim('anim-restore', 230, null);
+    } else {
+      bringToFront(win);
     }
+  };
+
+  window._closeCalc = function () {
+    if (isClosed) return;
+    playAnim('anim-close', 190, () => {
+      isClosed = true;
+      isMinimized = false;
+      isMaximized = false;
+      win.classList.remove('minimized', 'maximized');
+      win.style.display = 'none';
+      taskbarApp.style.display = 'none';
+      desktopIcon.classList.remove('hidden');
+      const calcMaxIcon = document.getElementById('calc-max-icon');
+      if (calcMaxIcon) calcMaxIcon.classList.remove('restore');
+    });
   };
 })();
 
@@ -807,11 +850,31 @@ startMenuOverlay.addEventListener('click', closeStartMenu);
 
 function setWallpaper(imgPath) {
   const el = window._wallpaperEl;
+  const smBetinha = document.getElementById('sm-betinha');
+
+  
+  if (el.style.display !== 'none' && el.getAttribute('data-wpp') === imgPath) {
+    el.style.opacity = '0';
+    setTimeout(function () {
+      el.onload = null;
+      el.onerror = null;
+      el.style.display = 'none';
+      el.removeAttribute('src');
+      el.removeAttribute('data-wpp');
+      document.body.style.backgroundImage = '';
+    }, 400);
+    if (smBetinha) smBetinha.setAttribute('data-tip', 'Definir como papel de parede');
+    closeStartMenu();
+    return;
+  }
+
   const isFirst = el.style.display === 'none';
   el.onload = function () {
     document.body.style.backgroundImage = 'none';
     el.style.display = 'block';
+    el.setAttribute('data-wpp', imgPath);
     requestAnimationFrame(() => { el.style.opacity = '1'; });
+    if (smBetinha) smBetinha.setAttribute('data-tip', 'Remover papel de parede');
     closeStartMenu();
   };
   el.onerror = function () {
@@ -936,4 +999,483 @@ document.querySelectorAll('.th-tip').forEach(el => {
     ttBox.style.top = y + 'px';
   });
   el.addEventListener('mouseleave', () => { ttBox.style.display = 'none'; });
+});
+(function () {
+  var TOTAL = 10;
+  var currentIdx = 0;
+  var customMode = false;
+  var overlay = document.getElementById('photo-viewer-overlay');
+  var viewer = document.getElementById('photo-viewer');
+  var pvImg = document.getElementById('pv-img');
+  var pvPlaceholder = document.getElementById('pv-placeholder');
+  var pvCounter = document.getElementById('pv-counter');
+  var pvCloseBtn = document.getElementById('pv-close-btn');
+  var pvPrevBtn = document.getElementById('pv-prev-btn');
+  var pvNextBtn = document.getElementById('pv-next-btn');
+  var pvTitlebar = document.getElementById('pv-titlebar');
+  var pvMinBtn = document.getElementById('pv-min-btn');
+  var pvMaxBtn = document.getElementById('pv-max-btn');
+  var pvMaxIcon = document.getElementById('pv-max-btn-icon');
+  var pvTaskbarBtn = document.getElementById('pv-taskbar-btn');
+  var smImagensBtn = document.getElementById('sm-imagens-btn');
+  var pvClosing = false;
+  var pvMaximized = false;
+  viewer.addEventListener('mousedown', function () { bringToFront(overlay); }, true);
+  var pvRestoreState = null; 
+
+  
+  pvImg.setAttribute('draggable', 'false');
+  pvImg.style.userSelect = 'none';
+  pvImg.style.webkitUserSelect = 'none';
+  pvImg.style.pointerEvents = 'none';
+
+  function pvUpdateCounter() {
+    pvCounter.textContent = (currentIdx + 1) + ' / ' + TOTAL;
+  }
+
+  function pvLoadSlot(idx) {
+    pvImg.classList.remove('pv-fade-in');
+    pvImg.style.display = 'none';
+    pvPlaceholder.classList.remove('pv-placeholder-in');
+    pvPlaceholder.style.display = 'none';
+
+    var src = 'imagens/foto' + (idx + 1) + '.png';
+    var testImg = new Image();
+
+    testImg.onload = function () {
+      pvImg.src = src;
+      pvImg.style.display = 'block';
+      pvPlaceholder.style.display = 'none';
+      void pvImg.offsetWidth;
+      pvImg.classList.add('pv-fade-in');
+    };
+
+    testImg.onerror = function () {
+      pvImg.style.display = 'none';
+      pvPlaceholder.style.display = 'flex';
+      void pvPlaceholder.offsetWidth;
+      pvPlaceholder.classList.add('pv-placeholder-in');
+    };
+
+    testImg.src = src;
+  }
+
+  function pvGo(idx) {
+    currentIdx = ((idx % TOTAL) + TOTAL) % TOTAL;
+    pvLoadSlot(currentIdx);
+    pvUpdateCounter();
+  }
+
+  function blockDrag(e) { e.preventDefault(); return false; }
+
+  function pvClearAnims() {
+    viewer.classList.remove('pv-anim-open','pv-anim-maximize','pv-anim-unmaximize','pv-anim-minimize','pv-anim-restore','pv-anim-close');
+  }
+
+  function pvLoadCustom(src) {
+    customMode = true;
+    pvPrevBtn.style.visibility = 'hidden';
+    pvNextBtn.style.visibility = 'hidden';
+    pvImg.classList.remove('pv-fade-in');
+    pvImg.style.display = 'none';
+    pvPlaceholder.classList.remove('pv-placeholder-in');
+    pvPlaceholder.style.display = 'none';
+    var testImg = new Image();
+    testImg.onload = function () {
+      pvImg.src = src;
+      pvImg.style.display = 'block';
+      pvPlaceholder.style.display = 'none';
+      void pvImg.offsetWidth;
+      pvImg.classList.add('pv-fade-in');
+    };
+    testImg.onerror = function () {
+      pvImg.style.display = 'none';
+      pvPlaceholder.style.display = 'flex';
+      void pvPlaceholder.offsetWidth;
+      pvPlaceholder.classList.add('pv-placeholder-in');
+    };
+    testImg.src = src;
+    pvCounter.textContent = '';
+  }
+
+  function pvOpen(customSrc) {
+    closeStartMenu();
+    pvClosing = false;
+    currentIdx = 0;
+    pvClearAnims();
+    viewer.classList.remove('pv-minimized');
+    overlay.classList.remove('closing');
+    overlay.classList.add('open');
+    bringToFront(overlay);
+    void viewer.offsetWidth;
+    viewer.classList.add('pv-anim-open');
+    setTimeout(function () { pvClearAnims(); }, 250);
+    pvTaskbarBtn.classList.add('visible');
+    pvTaskbarBtn.classList.remove('faded');
+    pvTaskbarBtn.title = '';
+    document.addEventListener('dragstart', blockDrag, true);
+    document.addEventListener('drag',      blockDrag, true);
+    if (customSrc) {
+      pvLoadCustom(customSrc);
+    } else {
+      pvGo(0);
+    }
+  }
+
+  function pvClose() {
+    if (pvClosing) return;
+    pvClosing = true;
+    ttBox.style.display = 'none';
+    document.removeEventListener('dragstart', blockDrag, true);
+    document.removeEventListener('drag',      blockDrag, true);
+    
+    viewer.classList.remove('pv-minimized', 'pv-maximized');
+    pvClearAnims();
+    void viewer.offsetWidth;
+    viewer.classList.add('pv-anim-close');
+    setTimeout(function () {
+      pvClearAnims();
+      customMode = false;
+      pvPrevBtn.style.visibility = '';
+      pvNextBtn.style.visibility = '';
+      overlay.classList.remove('open', 'closing');
+      pvMaxIcon.classList.remove('restore');
+      pvMaximized = false;
+      pvRestoreState = null;
+      pvTaskbarBtn.classList.remove('visible', 'faded');
+      pvTaskbarBtn.title = '';
+      pvClosing = false;
+    }, 190);
+  }
+
+  
+  pvMinBtn.addEventListener('click', function () {
+    pvClearAnims();
+    void viewer.offsetWidth;
+    viewer.classList.add('pv-anim-minimize');
+    pvTaskbarBtn.classList.add('faded');
+    pvTaskbarBtn.title = 'Clique para restaurar';
+    setTimeout(function () {
+      viewer.classList.add('pv-minimized');
+      pvClearAnims();
+    }, 200);
+  });
+
+  
+  pvTaskbarBtn.addEventListener('click', function () {
+    if (pvTaskbarBtn.classList.contains('faded')) {
+      
+      viewer.classList.remove('pv-minimized');
+      pvClearAnims();
+      void viewer.offsetWidth;
+      viewer.classList.add('pv-anim-restore');
+      pvTaskbarBtn.classList.remove('faded');
+      pvTaskbarBtn.title = '';
+      setTimeout(function () { pvClearAnims(); }, 230);
+    }
+    
+    bringToFront(overlay);
+  });
+
+  
+  pvMaxBtn.addEventListener('click', function () {
+    if (!pvMaximized) {
+      pvRestoreState = { left: viewer.style.left, top: viewer.style.top,
+                         width: viewer.style.width, height: viewer.style.height,
+                         position: viewer.style.position };
+      pvClearAnims();
+      void viewer.offsetWidth;
+      viewer.classList.add('pv-maximized', 'pv-anim-maximize');
+      pvMaxIcon.classList.add('restore');
+      pvMaximized = true;
+      setTimeout(function () { pvClearAnims(); }, 210);
+    } else {
+      viewer.classList.remove('pv-maximized');
+      pvMaxIcon.classList.remove('restore');
+      if (pvRestoreState) {
+        viewer.style.left     = pvRestoreState.left;
+        viewer.style.top      = pvRestoreState.top;
+        viewer.style.width    = pvRestoreState.width || '';
+        viewer.style.height   = pvRestoreState.height || '';
+        viewer.style.position = pvRestoreState.position || 'absolute';
+      }
+      pvClearAnims();
+      void viewer.offsetWidth;
+      viewer.classList.add('pv-anim-unmaximize');
+      pvMaximized = false;
+      setTimeout(function () { pvClearAnims(); }, 190);
+    }
+  });
+
+  smImagensBtn.addEventListener('click', function() { pvOpen(); });
+  pvCloseBtn.addEventListener('click', pvClose);
+
+  pvPrevBtn.addEventListener('click', function () { if (!customMode) pvGo(currentIdx - 1); });
+  pvNextBtn.addEventListener('click', function () { if (!customMode) pvGo(currentIdx + 1); });
+
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) pvClose();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (!overlay.classList.contains('open')) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); if (!customMode) pvGo(currentIdx + 1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); if (!customMode) pvGo(currentIdx - 1); }
+    else if (e.key === 'Escape') { e.preventDefault(); pvClose(); }
+  });
+
+  (function () {
+    var dragging = false;
+    var startX, startY, origLeft, origTop;
+
+    pvTitlebar.addEventListener('mousedown', function (e) {
+      if (e.target === pvCloseBtn || e.target === pvMinBtn || e.target === pvMaxBtn || e.target === pvMaxIcon) return;
+      if (pvMaximized) return;
+      dragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      var rect = viewer.getBoundingClientRect();
+      origLeft = rect.left;
+      origTop = rect.top;
+      viewer.style.position = 'absolute';
+      viewer.style.margin = '0';
+      viewer.style.left = origLeft + 'px';
+      viewer.style.top = origTop + 'px';
+      pvTitlebar.style.cursor = 'grabbing';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - startX;
+      var dy = e.clientY - startY;
+      var vw = window.innerWidth;
+      var vh = window.innerHeight;
+      var newLeft = Math.max(0, Math.min(origLeft + dx, vw - viewer.offsetWidth));
+      var newTop = Math.max(0, Math.min(origTop + dy, vh - viewer.offsetHeight));
+      viewer.style.left = newLeft + 'px';
+      viewer.style.top = newTop + 'px';
+    });
+
+    document.addEventListener('mouseup', function () {
+      if (!dragging) return;
+      dragging = false;
+      pvTitlebar.style.cursor = 'grab';
+    });
+  })();
+
+  window._pvOpen = pvOpen;
+})();
+
+(function () {
+  var ttBox = document.getElementById('tooltip-box');
+
+  function bindTip(el) {
+    el.addEventListener('mouseenter', function () {
+      ttBox.textContent = el.getAttribute('data-tip');
+      ttBox.style.display = 'block';
+    });
+    el.addEventListener('mousemove', function (e) {
+      var x = e.clientX + 14;
+      var y = e.clientY - 10;
+      if (x + 250 > window.innerWidth) x = e.clientX - 260;
+      if (y + 80 > window.innerHeight) y = e.clientY - 90;
+      ttBox.style.left = x + 'px';
+      ttBox.style.top = y + 'px';
+    });
+    el.addEventListener('mouseleave', function () {
+      ttBox.style.display = 'none';
+    });
+  }
+
+  document.querySelectorAll('[data-tip]:not(.th-tip)').forEach(bindTip);
+})();
+
+(function () {
+  var lb = document.getElementById('lb');
+  var lbClosing = false;
+
+  window.lbOpen = function () {
+    lbClosing = false;
+    lb.classList.remove('closing');
+    lb.classList.add('open');
+  };
+
+  window.lbClose = function () {
+    if (lbClosing) return;
+    lbClosing = true;
+    lb.classList.add('closing');
+    setTimeout(function () {
+      lb.classList.remove('open', 'closing');
+      lbClosing = false;
+    }, 210);
+  };
+
+  lb.addEventListener('click', function (e) {
+    if (e.target === lb) window.lbClose();
+  });
+
+  
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && lb.classList.contains('open')) {
+      e.preventDefault();
+      window.lbClose();
+    }
+  });
+})();
+
+(function () {
+  var trashOverlay = document.getElementById('trash-window-overlay');
+  var trashWin = document.getElementById('trash-window');
+  var trashTitlebar = document.getElementById('trash-titlebar');
+  var trashCloseBtn = document.getElementById('trash-close-btn');
+  var trashIcon = document.getElementById('trash-icon');
+  var trashFile = document.getElementById('trash-file');
+  var trashTaskbarBtn = document.getElementById('trash-taskbar-btn');
+  var trashClosing = false;
+  var trashClickTimer = null;
+
+  trashWin.addEventListener('mousedown', function () { bringToFront(trashOverlay); }, true);
+
+  function trashOpen() {
+    if (trashOverlay.classList.contains('open')) {
+      bringToFront(trashOverlay);
+      return;
+    }
+    trashClosing = false;
+    trashWin.classList.remove('tw-anim-close');
+    trashOverlay.classList.remove('closing');
+    trashOverlay.classList.add('open');
+    trashTaskbarBtn.classList.add('visible');
+    trashTaskbarBtn.classList.remove('faded');
+    bringToFront(trashOverlay);
+    void trashWin.offsetWidth;
+    trashWin.classList.add('tw-anim-open');
+    setTimeout(function () { trashWin.classList.remove('tw-anim-open'); }, 240);
+  }
+
+  function trashClose() {
+    if (trashClosing) return;
+    trashClosing = true;
+    trashWin.classList.remove('tw-anim-open');
+    void trashWin.offsetWidth;
+    trashWin.classList.add('tw-anim-close');
+    setTimeout(function () {
+      trashWin.classList.remove('tw-anim-close');
+      trashOverlay.classList.remove('open', 'closing');
+      trashTaskbarBtn.classList.remove('visible', 'faded');
+      trashClosing = false;
+    }, 190);
+  }
+
+  trashIcon.addEventListener('click', function (e) {
+    trashIcon.classList.add('selected');
+    if (trashClickTimer) {
+      clearTimeout(trashClickTimer);
+      trashClickTimer = null;
+      return;
+    }
+    trashClickTimer = setTimeout(function () { trashClickTimer = null; }, 280);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!trashIcon.contains(e.target)) {
+      trashIcon.classList.remove('selected');
+    }
+  });
+
+  trashIcon.addEventListener('dblclick', function () {
+    if (trashClickTimer) { clearTimeout(trashClickTimer); trashClickTimer = null; }
+    trashIcon.classList.remove('selected');
+    trashOpen();
+  });
+
+  trashCloseBtn.addEventListener('click', trashClose);
+
+  trashTaskbarBtn.addEventListener('click', function () {
+    if (trashTaskbarBtn.classList.contains('faded')) {
+      trashWin.classList.remove('tw-minimized');
+      trashTaskbarBtn.classList.remove('faded');
+    }
+    bringToFront(trashOverlay);
+  });
+
+  trashFile.addEventListener('click', function () {
+    trashFile.classList.add('selected');
+  });
+
+  trashFile.addEventListener('dblclick', function () {
+    window.trashFileOpen();
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!trashFile.contains(e.target)) {
+      trashFile.classList.remove('selected');
+    }
+  });
+
+  (function () {
+    var dragging = false;
+    var startX, startY, origLeft, origTop;
+
+    trashTitlebar.addEventListener('mousedown', function (e) {
+      if (e.target === trashCloseBtn || trashCloseBtn.contains(e.target)) return;
+      e.preventDefault();
+      bringToFront(trashOverlay);
+      var rect = trashWin.getBoundingClientRect();
+      origLeft = rect.left;
+      origTop = rect.top;
+      startX = e.clientX;
+      startY = e.clientY;
+      trashWin.style.left = origLeft + 'px';
+      trashWin.style.top = origTop + 'px';
+      trashWin.style.position = 'absolute';
+      trashWin.style.margin = '0';
+      dragging = true;
+      trashOverlay.style.alignItems = 'flex-start';
+      trashOverlay.style.justifyContent = 'flex-start';
+    });
+
+    document.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - startX;
+      var dy = e.clientY - startY;
+      var newLeft = origLeft + dx;
+      var newTop = origTop + dy;
+      var minTop = 0;
+      var maxTop = window.innerHeight - 40;
+      var maxLeft = window.innerWidth - 80;
+      if (newTop < minTop) newTop = minTop;
+      if (newTop > maxTop) newTop = maxTop;
+      if (newLeft < -trashWin.offsetWidth + 80) newLeft = -trashWin.offsetWidth + 80;
+      if (newLeft > maxLeft) newLeft = maxLeft;
+      trashWin.style.left = newLeft + 'px';
+      trashWin.style.top = newTop + 'px';
+    });
+
+    document.addEventListener('mouseup', function () { dragging = false; });
+  })();
+
+  window.trashFileOpen = function () {
+    trashClose();
+    setTimeout(function () {
+      if (window._pvOpen) window._pvOpen('imagens/topsecret.png');
+    }, 200);
+  };
+})();
+
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  var trashOverlay = document.getElementById('trash-window-overlay');
+  if (trashOverlay && trashOverlay.classList.contains('open')) {
+    e.preventDefault();
+    var trashCloseBtn = document.getElementById('trash-close-btn');
+    if (trashCloseBtn) trashCloseBtn.click();
+    return;
+  }
+  if (window._closeCalc) {
+    e.preventDefault();
+    window._closeCalc();
+  }
 });

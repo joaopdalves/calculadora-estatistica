@@ -14,17 +14,17 @@
 
 <div id="start-menu">
   <div class="start-menu-top">
-    <div class="start-menu-avatar" id="avatar-btn" title="Clique para ver foto" style="cursor:pointer;"
-      onclick="event.stopPropagation();closeStartMenu();document.getElementById('lb').style.display='flex'">
-      <img src="jefferson.png" alt="Jefferson Biajone">
+    <div class="start-menu-avatar" id="avatar-btn" data-tip="Clique para ver foto" style="cursor:pointer;"
+      onclick="event.stopPropagation();closeStartMenu();if(window._pvOpen)window._pvOpen('imagens/jefferson.png')">
+      <img src="imagens/jefferson.png" alt="Jefferson Biajone">
     </div>
     <div class="start-menu-username">Jefferson Biajone</div>
   </div>
   <div class="start-menu-body">
     <div class="start-menu-left">
       <div class="sm-section-label">Arquivos Recentes</div>
-      <div class="sm-item" id="sm-betinha" onclick="setWallpaper('betinha.png')" title="Definir como papel de parede">
-        <img src="betinha.png" alt="betinha" onerror="this.style.display='none';this.nextSibling.querySelector('small').textContent='Imagem não encontrada'">
+      <div class="sm-item" id="sm-betinha" onclick="setWallpaper('imagens/betinha.png')" data-tip="Definir como papel de parede">
+        <img src="imagens/betinha.png" alt="betinha" onerror="this.style.display='none';this.nextSibling.querySelector('small').textContent='Imagem não encontrada'">
         <div class="sm-item-text">
           betinha.png
           <small>Papel de parede · clique para aplicar</small>
@@ -32,7 +32,7 @@
       </div>
       <div class="sm-divider"></div>
       <div class="sm-item" id="sm-calc-item">
-        <img src="beta.png" alt="Calculadora" onerror="this.style.fontSize='24px';this.removeAttribute('src')">
+        <img src="imagens/beta.png" alt="Calculadora" onerror="this.style.fontSize='24px';this.removeAttribute('src')">
         <div class="sm-item-text">
           Calculadora Estatística
           <small>Duplo clique para abrir</small>
@@ -43,7 +43,7 @@
       <div class="sm-right-group">
         <div class="sm-right-item"><span>🖥️</span> Computador</div>
         <div class="sm-right-item"><span>📁</span> Documentos</div>
-        <div class="sm-right-item"><span>🖼️</span> Imagens</div>
+        <div class="sm-right-item" id="sm-imagens-btn"><span>🖼️</span> Imagens</div>
         <div class="sm-right-item"><span>🎵</span> Músicas</div>
         <div class="sm-divider" style="background:rgba(255,255,255,0.1);margin:4px 6px;"></div>
         <div class="sm-right-item"><span>⚙️</span> Painel de Controle</div>
@@ -57,13 +57,13 @@
   </div>
 </div>
 
-<div class="trash-icon" id="trash-icon" title="Lixeira de Reciclagem">
-  <img src="lixeira.png" alt="Lixeira" width="48" height="48" style="object-fit:contain;display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));">
+<div class="trash-icon" id="trash-icon">
+  <img src="imagens/lixeira.png" alt="Lixeira" width="48" height="48" style="object-fit:contain;display:block;">
   <span>Lixeira</span>
 </div>
 
-<div class="desktop-icon hidden" id="desktop-icon" title="Duplo clique para abrir">
-  <img src="beta.png" alt="Calculadora Estatística">
+<div class="desktop-icon hidden" id="desktop-icon">
+  <img src="imagens/beta.png" alt="Calculadora Estatística">
   <span>Calculadora Estatística</span>
 </div>
 
@@ -75,9 +75,11 @@
     Iniciar
   </div>
   <div class="taskbar-app">
-    <img src="beta.png" width="16" height="16" style="object-fit:contain;display:inline-block;vertical-align:middle;border-radius:3px;">
+    <img src="imagens/beta.png" width="16" height="16" style="object-fit:contain;display:inline-block;vertical-align:middle;border-radius:3px;">
     Calculadora Estatística
   </div>
+  <div id="pv-taskbar-btn">🖼️ Visualizador de Imagens</div>
+  <div id="trash-taskbar-btn">🗑️ Lixeira</div>
   <div class="taskbar-clock" id="clock"></div>
 </div>
 
@@ -86,7 +88,7 @@
     <div class="title-text">Calculadora Estatística</div>
     <div class="win-controls">
       <div class="win-btn win-btn-min">─</div>
-      <div class="win-btn win-btn-max"></div>
+      <div class="win-btn win-btn-max"><span id="calc-max-icon"></span></div>
       <div class="win-btn win-btn-close">✕</div>
     </div>
   </div>
@@ -94,7 +96,7 @@
   <div class="window-body">
     <div class="app-header">
       <div class="app-logo" style="width:64px;height:64px;flex-shrink:0;">
-        <img src="beta.png" width="64" height="64" style="object-fit:contain;display:block;border-radius:10px;">
+        <img src="imagens/beta.png" width="64" height="64" style="object-fit:contain;display:block;border-radius:10px;">
       </div>
       <div class="app-title-block">
         <div class="app-title">Calculadora Estatística Beta da Montanha 2.0</div>
@@ -157,11 +159,11 @@
               <div class="result-cell-value" id="p0-range">—</div>
             </div>
             <div class="result-cell">
-              <div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="σ = √[ Σ(xᵢ−x̄)² / n ]&#10;Mede a dispersão dos dados em relação à média">?</span></div>
+              <div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="Raiz quadrada da variância&#10;σ = √[ Σ(xᵢ−x̄)² / n ]">?</span></div>
               <div class="result-cell-value" id="p0-std">—</div>
             </div>
             <div class="result-cell">
-              <div class="result-cell-label">Qtd. dados (n) <span class="th-tip" data-tip="Total de valores inseridos no conjunto">?</span></div>
+              <div class="result-cell-label">Total (n) <span class="th-tip" data-tip="Quantidade total de elementos no conjunto">?</span></div>
               <div class="result-cell-value" id="p0-n">—</div>
             </div>
           </div>
@@ -176,9 +178,9 @@
       <div class="panel" id="panel-1">
         <div class="section-label">Entrada de Dados</div>
         <div class="input-group">
-          <label>Conjunto de dados:</label>
-          <textarea id="p1-input" placeholder="Ex: 2 2 2 4 4 4 4 4 6 6 6 6 6 6 6 6 8 8 8 8 8 8 10 10 10 10 12 12"></textarea>
-          <div class="hint">💡 Separe os valores por vírgula, ponto e vírgula ou espaço. Use ponto como decimal. A tabela de frequências é gerada automaticamente.</div>
+          <label>Conjunto de dados (11 a 19 elementos):</label>
+          <textarea id="p1-input" placeholder="Ex: 12, 15, 18, 12, 20, 15, 18, 12, 16, 15, 14"></textarea>
+          <div class="hint">💡 Separe os valores por vírgula, ponto e vírgula ou espaço.</div>
         </div>
         <div class="btn-row">
           <button class="btn btn-primary" onclick="calcP1()">▶ Calcular</button>
@@ -197,51 +199,48 @@
             <div class="detail-title">Rol <span class="th-tip" data-tip="Rol: dados dispostos em ordem crescente">?</span></div>
             <div id="p1-sorted" style="font-size:12px;color:#2a4a90;word-break:break-word;line-height:1.7;"></div>
           </div>
-          <div class="results-detail">
-            <div class="detail-title">
-              Tabela de cálculo
-              <span style="font-size:9.5px;font-weight:400;color:#7a9acc;text-transform:none;letter-spacing:0">— passe o mouse nos <b>?</b> para ver o que cada coluna significa</span>
+          <div class="results-grid" style="border-top:1px solid rgba(80,140,210,0.2);">
+            <div class="result-cell">
+              <div class="result-cell-label">Média (x̄) <span class="th-tip" data-tip="x̄ = Σ(xᵢ·fᵢ) / Σfᵢ">?</span></div>
+              <div class="result-cell-value" id="p1-mean">—</div>
             </div>
+            <div class="result-cell">
+              <div class="result-cell-label">Moda (Mo) <span class="th-tip" data-tip="Valor com maior frequência">?</span></div>
+              <div class="result-cell-value" id="p1-mode">—</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Valor onde F ≥ n/2">?</span></div>
+              <div class="result-cell-value" id="p1-median">—</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-cell-label">Amplitude (AT) <span class="th-tip" data-tip="AT = Xmáx − Xmín">?</span></div>
+              <div class="result-cell-value" id="p1-range">—</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="σ = √[ Σfᵢ(xᵢ−x̄)² / n ]">?</span></div>
+              <div class="result-cell-value" id="p1-std">—</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-cell-label">Total (Σfᵢ) <span class="th-tip" data-tip="Soma de todas as frequências = n">?</span></div>
+              <div class="result-cell-value" id="p1-n">—</div>
+            </div>
+          </div>
+          <div class="results-detail">
+            <div class="detail-title">Tabela de frequências</div>
             <div class="table-wrapper">
               <table class="step-table">
                 <thead>
                   <tr>
-                    <th><span class="th-wrap">xᵢ <span class="th-tip" data-tip="Valor observado&#10;(cada número distinto do conjunto)">?</span></span></th>
-                    <th><span class="th-wrap">fᵢ <span class="th-tip" data-tip="Frequência absoluta&#10;Quantas vezes xᵢ aparece nos dados">?</span></span></th>
-                    <th><span class="th-wrap">F <span class="th-tip" data-tip="Frequência acumulada&#10;Soma das frequências até esta linha">?</span></span></th>
-                    <th><span class="th-wrap">xᵢ·fᵢ <span class="th-tip" data-tip="Valor × Frequência&#10;Usado para calcular a média ponderada">?</span></span></th>
-                    <th><span class="th-wrap">(xᵢ−x̄)²·fᵢ <span class="th-tip" data-tip="Desvio quadrático ponderado&#10;Mede o quanto cada valor se afasta da média&#10;(base do desvio padrão)">?</span></span></th>
+                    <th><span class="th-wrap">xᵢ <span class="th-tip" data-tip="Valor">?</span></span></th>
+                    <th><span class="th-wrap">fᵢ <span class="th-tip" data-tip="Frequência absoluta">?</span></span></th>
+                    <th><span class="th-wrap">F <span class="th-tip" data-tip="Frequência acumulada">?</span></span></th>
+                    <th><span class="th-wrap">xᵢ·fᵢ <span class="th-tip" data-tip="Produto valor × frequência">?</span></span></th>
+                    <th><span class="th-wrap">fᵢ(xᵢ−x̄)² <span class="th-tip" data-tip="Contribuição para desvio padrão">?</span></span></th>
                   </tr>
                 </thead>
                 <tbody id="p1-detail-body"></tbody>
                 <tfoot id="p1-detail-foot"></tfoot>
               </table>
-            </div>
-          </div>
-          <div class="results-grid" style="border-top:1px solid rgba(80,140,210,0.2);">
-            <div class="result-cell">
-              <div class="result-cell-label">Média (x̄) <span class="th-tip" data-tip="Média ponderada&#10;x̄ = Σ(xᵢ·fᵢ) / Σfᵢ">?</span></div>
-              <div class="result-cell-value" id="p1-mean">—</div>
-            </div>
-            <div class="result-cell">
-              <div class="result-cell-label">Moda (Mo) <span class="th-tip" data-tip="Valor com maior frequência absoluta.&#10;'Amodal' = todas as frequências são iguais">?</span></div>
-              <div class="result-cell-value" id="p1-mode">—</div>
-            </div>
-            <div class="result-cell">
-              <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Valor de xᵢ onde a frequência acumulada&#10;F atinge ou ultrapassa n/2">?</span></div>
-              <div class="result-cell-value" id="p1-median">—</div>
-            </div>
-            <div class="result-cell">
-              <div class="result-cell-label">Amplitude (AT) <span class="th-tip" data-tip="Diferença entre o maior e o menor valor&#10;AT = Xmáx − Xmín">?</span></div>
-              <div class="result-cell-value" id="p1-range">—</div>
-            </div>
-            <div class="result-cell">
-              <div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="σ = √[ Σfᵢ(xᵢ−x̄)² / n ]&#10;Dispersão ponderada pelas frequências">?</span></div>
-              <div class="result-cell-value" id="p1-std">—</div>
-            </div>
-            <div class="result-cell">
-              <div class="result-cell-label">Total (Σfᵢ) <span class="th-tip" data-tip="Soma de todas as frequências&#10;= quantidade total de dados (n)">?</span></div>
-              <div class="result-cell-value" id="p1-n">—</div>
             </div>
           </div>
           <div class="results-detail">
@@ -255,16 +254,13 @@
       <div class="panel" id="panel-2">
         <div class="section-label">Entrada de Dados</div>
         <div class="input-group">
-          <label>Conjunto de dados:</label>
-          <textarea id="p2-input" placeholder="Ex: 12 18 23 27 31 35 38 42 45 49 51 55 58 62 67"></textarea>
-          <div class="hint">💡 Separe os valores por vírgula, ponto e vírgula ou espaço. Use ponto como decimal. Os intervalos de classe são criados automaticamente.</div>
+          <label>Conjunto de dados (20 ou mais elementos):</label>
+          <textarea id="p2-input" placeholder="Ex: 23, 45, 31, 28, 52, 41, 37, 29, 44, 38 ..."></textarea>
+          <div class="hint">💡 Separe os valores por vírgula, ponto e vírgula ou espaço.</div>
         </div>
-        <div class="input-group" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-          <div style="flex:1;min-width:160px;">
-            <label>Número de classes:</label>
-            <input type="number" id="p2-nclasses" min="2" max="20" placeholder="Auto (Sturges)" style="max-width:180px;">
-          </div>
-          <div class="hint" style="font-size:11px;color:#5a7aaa;margin-top:18px;">💡 Deixe em branco para usar a <b>Regra de Sturges</b> automaticamente.</div>
+        <div class="input-group">
+          <label>Número de classes (opcional) <span class="th-tip" data-tip="Deixe em branco para usar a Regra de Sturges&#10;k = 1 + 3,322 · log₁₀(n)&#10;Mínimo 2, máximo 20">?</span></label>
+          <input type="number" id="p2-nclasses" placeholder="Ex: 5 (opcional — padrão: Sturges)" min="2" max="20" step="1">
         </div>
         <div class="btn-row">
           <button class="btn btn-primary" onclick="calcP2()">▶ Calcular</button>
@@ -284,20 +280,17 @@
             <div id="p2-sorted" style="font-size:12px;color:#2a4a90;word-break:break-word;line-height:1.7;"></div>
           </div>
           <div class="results-detail">
-            <div class="detail-title">
-              Tabela de cálculo
-              <span style="font-size:9.5px;font-weight:400;color:#7a9acc;text-transform:none;letter-spacing:0">— passe o mouse nos <b>?</b> para ver o que cada coluna significa</span>
-            </div>
+            <div class="detail-title">Tabela de classes</div>
             <div class="table-wrapper">
               <table class="step-table">
                 <thead>
                   <tr>
-                    <th><span class="th-wrap">Classe <span class="th-tip" data-tip="Intervalo de classe [lᵢ, Lᵢ[&#10;Agrupa valores próximos em faixas">?</span></span></th>
-                    <th><span class="th-wrap">mᵢ <span class="th-tip" data-tip="Ponto médio da classe&#10;mᵢ = (Lim. inferior + Lim. superior) / 2">?</span></span></th>
-                    <th><span class="th-wrap">fᵢ <span class="th-tip" data-tip="Frequência absoluta&#10;Quantos dados caem neste intervalo">?</span></span></th>
-                    <th><span class="th-wrap">F <span class="th-tip" data-tip="Frequência acumulada&#10;Soma das frequências até esta classe">?</span></span></th>
-                    <th><span class="th-wrap">mᵢ·fᵢ <span class="th-tip" data-tip="Ponto médio × Frequência&#10;Usado para calcular a média das classes">?</span></span></th>
-                    <th><span class="th-wrap">(mᵢ−x̄)²·fᵢ <span class="th-tip" data-tip="Desvio quadrático ponderado&#10;Base do cálculo do desvio padrão agrupado">?</span></span></th>
+                    <th><span class="th-wrap">Classe <span class="th-tip" data-tip="Intervalo da classe [lᵢ – ls[">?</span></span></th>
+                    <th><span class="th-wrap">mᵢ <span class="th-tip" data-tip="Ponto médio da classe">?</span></span></th>
+                    <th><span class="th-wrap">fᵢ <span class="th-tip" data-tip="Frequência absoluta">?</span></span></th>
+                    <th><span class="th-wrap">F <span class="th-tip" data-tip="Frequência acumulada">?</span></span></th>
+                    <th><span class="th-wrap">mᵢ·fᵢ <span class="th-tip" data-tip="Ponto médio × frequência">?</span></span></th>
+                    <th><span class="th-wrap">fᵢ(mᵢ−x̄)² <span class="th-tip" data-tip="Contribuição para desvio padrão">?</span></span></th>
                   </tr>
                 </thead>
                 <tbody id="p2-detail-body"></tbody>
@@ -448,11 +441,57 @@
   </div>
 </div>
 
-<div id="lb" onclick="document.getElementById('lb').style.display='none'"
-  style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;cursor:zoom-out;">
-  <img src="jefferson.png" style="max-width:80vw;max-height:80vh;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,0.9);" onclick="event.stopPropagation()">
+<div id="lb">
+  <img src="imagens/jefferson.png" style="max-width:80vw;max-height:80vh;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,0.9);" onclick="event.stopPropagation()">
 </div>
 
+<div id="photo-viewer-overlay">
+  <div id="photo-viewer">
+    <div id="pv-titlebar">
+      <div id="pv-title">Visualizador de Imagens</div>
+      <div id="pv-win-controls">
+        <div id="pv-min-btn">─</div>
+        <div id="pv-max-btn"><span id="pv-max-btn-icon"></span></div>
+        <div id="pv-close-btn">✕</div>
+      </div>
+    </div>
+    <div id="pv-stage">
+      <div id="pv-img-wrap">
+        <img id="pv-img" src="" alt="">
+        <div id="pv-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <rect width="64" height="64" rx="8" fill="rgba(255,255,255,0.06)"/>
+            <rect x="10" y="14" width="44" height="36" rx="4" stroke="rgba(255,255,255,0.25)" stroke-width="2" fill="none"/>
+            <circle cx="22" cy="26" r="5" stroke="rgba(255,255,255,0.25)" stroke-width="2" fill="none"/>
+            <path d="M10 38 L22 26 L34 38 L44 28 L54 38" stroke="rgba(255,255,255,0.25)" stroke-width="2" fill="none" stroke-linejoin="round"/>
+          </svg>
+          <span>Sem imagem</span>
+        </div>
+      </div>
+    </div>
+    <div id="pv-controls">
+      <button id="pv-prev-btn">&#10094;</button>
+      <div id="pv-counter"></div>
+      <button id="pv-next-btn">&#10095;</button>
+    </div>
+  </div>
+</div>
+
+<div id="trash-window-overlay">
+  <div id="trash-window">
+    <div id="trash-titlebar">
+      <div id="trash-title-text">Lixeira</div>
+      <div id="trash-win-controls">
+        <div id="trash-close-btn">✕</div>
+      </div>
+    </div>
+    <div id="trash-body">
+      <div id="trash-file" ondblclick="trashFileOpen()">
+        <span id="trash-file-name">topsecret.png</span>
+      </div>
+    </div>
+  </div>
+</div>
 <script src="script.js"></script>
 </body>
 </html>
