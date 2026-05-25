@@ -272,6 +272,7 @@ function switchTab(idx) {
   panels.forEach((p, i) => p.classList.toggle('active', i === idx));
   setTimeout(() => body.classList.remove('no-scroll'), 230);
 }
+var _setModeTimer = null;
 function setMode(mode) {
   const descSection = document.getElementById('desc-section');
   const infSection = document.getElementById('inf-section');
@@ -279,6 +280,7 @@ function setMode(mode) {
   const btnInf = document.getElementById('mode-btn-inf');
   const subtitle = document.getElementById('app-subtitle');
   const body = document.querySelector('.window-body');
+  clearTimeout(_setModeTimer);
   body.classList.add('no-scroll');
   if (mode === 'desc') {
     descSection.style.display = '';
@@ -293,7 +295,7 @@ function setMode(mode) {
     btnInf.classList.add('active');
     subtitle.textContent = 'Estatística Inferencial · Distribuição de Poisson';
   }
-  setTimeout(() => body.classList.remove('no-scroll'), 250);
+  _setModeTimer = setTimeout(() => body.classList.remove('no-scroll'), 250);
 }
 function calcP0() {
   showError('p0-error', '');
