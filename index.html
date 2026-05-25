@@ -452,7 +452,9 @@
 </div>
 
 <div id="lb">
+  <div id="lb-zoom-reset">↺ Resetar zoom</div>
   <img src="imagens/jefferson.png" style="max-width:80vw;max-height:80vh;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,0.9);" onclick="event.stopPropagation()">
+  <div id="lb-zoom-hint">Scroll ou pinça para zoom</div>
 </div>
 
 <div id="photo-viewer-overlay">
@@ -476,6 +478,12 @@
             <path d="M10 38 L22 26 L34 38 L44 28 L54 38" stroke="rgba(255,255,255,0.25)" stroke-width="2" fill="none" stroke-linejoin="round"/>
           </svg>
           <span>Sem imagem</span>
+        </div>
+        <div id="pv-zoom-bar">
+          <button id="pv-zoom-out">−</button>
+          <span id="pv-zoom-label">100%</span>
+          <button id="pv-zoom-in">+</button>
+          <button id="pv-zoom-reset" title="Resetar zoom">↺</button>
         </div>
       </div>
     </div>
