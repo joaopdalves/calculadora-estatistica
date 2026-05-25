@@ -278,6 +278,8 @@ function setMode(mode) {
   const btnDesc = document.getElementById('mode-btn-desc');
   const btnInf = document.getElementById('mode-btn-inf');
   const subtitle = document.getElementById('app-subtitle');
+  const body = document.querySelector('.window-body');
+  body.classList.add('no-scroll');
   if (mode === 'desc') {
     descSection.style.display = '';
     infSection.style.display = 'none';
@@ -291,6 +293,7 @@ function setMode(mode) {
     btnInf.classList.add('active');
     subtitle.textContent = 'Estatística Inferencial · Distribuição de Poisson';
   }
+  setTimeout(() => body.classList.remove('no-scroll'), 250);
 }
 function calcP0() {
   showError('p0-error', '');
