@@ -105,14 +105,39 @@ body::before {
   display: flex;
   align-items: center;
   gap: 5px;
-  cursor: default;
+  cursor: pointer;
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
   max-width: 180px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  transition: opacity 0.15s;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
+.taskbar-app.dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.55), 0 0 0 2px rgba(255,255,255,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+  transform: scale(1.04);
+  transition: opacity 0.15s, transform 0.15s;
+}
+#taskbar-items {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#taskbar-items *::selection { background: transparent; }
+#taskbar-items *::-moz-selection { background: transparent; }
+.taskbar-app:focus,
+.taskbar-app:focus-visible { outline: none; }
 .window {
   position: fixed;
   z-index: 50;

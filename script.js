@@ -28,6 +28,204 @@ function bringToFront(el) {
   _winFocus(id);
 }
 
+var _taskbar = (function () {
+  var items = [];
+  var container = null;
+  var isDragging = false;
+  var dragId = null;
+  var dragEl = null;
+  var activePointerId = null;
+  var DRAG_THRESHOLD = 5;
+  var FLIP_MS = 260;
+  var currentDropIdx = -1;
+  var rafPending = false;
+  var pendingX = 0;
+  var baseRects = [];
+
+  function getContainer() {
+    if (!container) container = document.getElementById('taskbar-items');
+    return container;
+  }
+
+  function render() {
+    var c = getContainer();
+    if (!c) return;
+    items.forEach(function (item) { c.appendChild(item.el); });
+  }
+
+  function snapshotRects() {
+    baseRects = items.map(function (item) {
+      return item.el.getBoundingClientRect();
+    });
+  }
+
+  function getDropIndex(clientX) {
+    var dragIdx = items.findIndex(function (i) { return i.id === dragId; });
+    var best = dragIdx;
+    var bestDist = Infinity;
+    baseRects.forEach(function (r, i) {
+      if (i === dragIdx) return;
+      var mid = r.left + r.width / 2;
+      var d = Math.abs(clientX - mid);
+      if (d < bestDist) { bestDist = d; best = i; }
+    });
+    return best;
+  }
+
+  function applyShifts(dropIdx) {
+    var dragIdx = items.findIndex(function (i) { return i.id === dragId; });
+    items.forEach(function (item, i) {
+      if (i === dragIdx) return;
+      var shift = 0;
+      if (dragIdx < dropIdx) {
+        if (i > dragIdx && i <= dropIdx) shift = -(baseRects[dragIdx].width + 4);
+      } else if (dragIdx > dropIdx) {
+        if (i >= dropIdx && i < dragIdx) shift = baseRects[dragIdx].width + 4;
+      }
+      item.el.style.transition = 'transform ' + FLIP_MS + 'ms cubic-bezier(0.4, 0, 0.2, 1)';
+      item.el.style.transform = shift ? 'translateX(' + shift + 'px)' : '';
+    });
+  }
+
+  function commitOrder(dragIdx, dropIdx) {
+    items.forEach(function (item) {
+      item.el.style.transition = 'none';
+      item.el.style.transform = '';
+    });
+    if (dragIdx !== dropIdx && dragIdx !== -1) {
+      var removed = items.splice(dragIdx, 1)[0];
+      items.splice(dropIdx, 0, removed);
+      render();
+    }
+  }
+
+  function updateDrag(clientX) {
+    var dropIdx = getDropIndex(clientX);
+    if (dropIdx === currentDropIdx) return;
+    currentDropIdx = dropIdx;
+    applyShifts(dropIdx);
+  }
+
+  function scheduleDrag(clientX) {
+    pendingX = clientX;
+    if (rafPending) return;
+    rafPending = true;
+    requestAnimationFrame(function () {
+      rafPending = false;
+      if (isDragging) updateDrag(pendingX);
+    });
+  }
+
+  function startDrag(id, el, pointerId) {
+    dragId = id;
+    dragEl = el;
+    isDragging = true;
+    activePointerId = pointerId;
+    currentDropIdx = items.findIndex(function (i) { return i.id === id; });
+    items.forEach(function (item) {
+      item.el.style.transition = 'none';
+      item.el.style.transform = '';
+    });
+    snapshotRects();
+    el.classList.add('dragging');
+    var c = getContainer();
+    if (c) { c.style.userSelect = 'none'; c.style.webkitUserSelect = 'none'; }
+  }
+
+  function endDrag() {
+    if (!isDragging) return;
+    isDragging = false;
+    rafPending = false;
+    var drop = currentDropIdx;
+    var dragIdx = items.findIndex(function (i) { return i.id === dragId; });
+    currentDropIdx = -1;
+    activePointerId = null;
+    var el = dragEl;
+    dragId = null;
+    dragEl = null;
+    baseRects = [];
+    if (el) el.classList.remove('dragging');
+    var c = getContainer();
+    if (c) { c.style.userSelect = ''; c.style.webkitUserSelect = ''; }
+    commitOrder(dragIdx, drop);
+  }
+
+  document.addEventListener('pointerup', function (e) {
+    if (!isDragging) return;
+    if (activePointerId !== null && e.pointerId !== activePointerId) return;
+    endDrag();
+  });
+
+  document.addEventListener('pointercancel', function (e) {
+    if (!isDragging) return;
+    if (activePointerId !== null && e.pointerId !== activePointerId) return;
+    endDrag();
+  });
+
+  function addItem(id, el) {
+    if (items.find(function (i) { return i.id === id; })) return;
+
+    var pointerDown = false;
+    var downX = 0;
+    var thresholdMet = false;
+    var capturedPointerId = null;
+
+    el.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      pointerDown = true;
+      thresholdMet = false;
+      downX = e.clientX;
+      capturedPointerId = e.pointerId;
+    });
+
+    el.addEventListener('pointermove', function (e) {
+      if (!pointerDown || e.pointerId !== capturedPointerId) return;
+      if (!thresholdMet) {
+        if (Math.abs(e.clientX - downX) < DRAG_THRESHOLD) return;
+        thresholdMet = true;
+        el.setPointerCapture(e.pointerId);
+        startDrag(id, el, e.pointerId);
+      }
+      if (!isDragging || dragId !== id) return;
+      scheduleDrag(e.clientX);
+    });
+
+    el.addEventListener('pointerup', function (e) {
+      if (e.pointerId !== capturedPointerId) return;
+      pointerDown = false;
+      thresholdMet = false;
+      if (isDragging && dragId === id) endDrag();
+    });
+
+    el.addEventListener('pointercancel', function (e) {
+      if (e.pointerId !== capturedPointerId) return;
+      pointerDown = false;
+      thresholdMet = false;
+      if (isDragging && dragId === id) endDrag();
+    });
+
+    items.push({ id: id, el: el });
+    render();
+  }
+
+  function removeItem(id) {
+    if (isDragging && dragId === id) endDrag();
+    var idx = items.findIndex(function (i) { return i.id === id; });
+    if (idx === -1) return;
+    var el = items[idx].el;
+    if (el.parentNode) el.parentNode.removeChild(el);
+    items.splice(idx, 1);
+  }
+
+  function getItem(id) {
+    var found = items.find(function (i) { return i.id === id; });
+    return found ? found.el : null;
+  }
+
+  return { addItem: addItem, removeItem: removeItem, getItem: getItem };
+})();
+
 
 const fmt = v => {
   if (v === null || v === undefined || isNaN(v)) return '—';
@@ -670,7 +868,6 @@ function tick() {
 (function () {
   const win = document.querySelector('.window');
   win.addEventListener('mousedown', function () { bringToFront(win); }, true);
-  const taskbarApp = document.querySelector('.taskbar-app');
   const desktopIcon = document.getElementById('desktop-icon');
   let isMaximized = false;
   let isMinimized = false;
@@ -696,9 +893,34 @@ function tick() {
     }, duration);
   }
 
+  function getBtn() { return _taskbar.getItem('calc-taskbar'); }
+
+  function createTaskbarBtn() {
+    var btn = document.createElement('div');
+    btn.className = 'taskbar-app';
+    btn.innerHTML = '<img src="imagens/beta.png" width="16" height="16" style="object-fit:contain;display:inline-block;vertical-align:middle;border-radius:3px;"> Calculadora Estatística';
+    btn.addEventListener('click', function () {
+      if (isClosed) return;
+      if (isMinimized) {
+        isMinimized = false;
+        win.classList.remove('minimized');
+        btn.style.opacity = '1';
+        btn.title = '';
+        
+        playAnim('anim-restore', 230, null);
+      }
+      bringToFront(win);
+      win.focus && win.focus();
+    });
+    return btn;
+  }
+
   win.style.display = '';
   playAnim('anim-open', 230, null);
   _winRegister('calc-window', function () { if (!isClosed) window._closeCalc(); });
+
+  var initialBtn = createTaskbarBtn();
+  _taskbar.addItem('calc-taskbar', initialBtn);
 
   document.querySelector('.win-btn-min').addEventListener('click', () => {
     if (isClosed || isMinimized) return;
@@ -706,23 +928,8 @@ function tick() {
       isMinimized = true;
       win.classList.add('minimized');
     });
-    taskbarApp.style.opacity = '0.55';
-    taskbarApp.title = 'Clique para restaurar';
-    taskbarApp.style.cursor = 'pointer';
-  });
-
-  taskbarApp.addEventListener('click', () => {
-    if (isClosed) return;
-    if (isMinimized) {
-      isMinimized = false;
-      win.classList.remove('minimized');
-      taskbarApp.style.opacity = '1';
-      taskbarApp.title = '';
-      taskbarApp.style.cursor = 'default';
-      playAnim('anim-restore', 230, null);
-    }
-    bringToFront(win);
-    win.focus && win.focus();
+    var btn = getBtn();
+    if (btn) { btn.style.opacity = '0.55'; btn.title = 'Clique para restaurar';  }
   });
 
   document.querySelector('.win-btn-max').addEventListener('click', () => {
@@ -753,7 +960,7 @@ function tick() {
       isMaximized = false;
       win.classList.remove('minimized', 'maximized');
       win.style.display = 'none';
-      taskbarApp.style.display = 'none';
+      _taskbar.removeItem('calc-taskbar');
       desktopIcon.classList.remove('hidden');
       _winRemove('calc-window');
       const calcMaxIcon = document.getElementById('calc-max-icon');
@@ -779,10 +986,8 @@ function tick() {
       win.classList.remove('minimized', 'maximized');
       isMinimized = false;
       isMaximized = false;
-      taskbarApp.style.display = '';
-      taskbarApp.style.opacity = '1';
-      taskbarApp.title = '';
-      taskbarApp.style.cursor = 'default';
+      var btn = createTaskbarBtn();
+      _taskbar.addItem('calc-taskbar', btn);
       _winRegister('calc-window', function () { if (!isClosed) window._closeCalc(); });
       playAnim('anim-open', 230, null);
     }
@@ -802,18 +1007,15 @@ function tick() {
       win.classList.remove('minimized', 'maximized');
       isMinimized = false;
       isMaximized = false;
-      taskbarApp.style.display = '';
-      taskbarApp.style.opacity = '1';
-      taskbarApp.title = '';
-      taskbarApp.style.cursor = 'default';
+      var btn = createTaskbarBtn();
+      _taskbar.addItem('calc-taskbar', btn);
       _winRegister('calc-window', function () { if (!isClosed) window._closeCalc(); });
       playAnim('anim-open', 230, null);
     } else if (isMinimized) {
       isMinimized = false;
       win.classList.remove('minimized');
-      taskbarApp.style.opacity = '1';
-      taskbarApp.title = '';
-      taskbarApp.style.cursor = 'default';
+      var btn = getBtn();
+      if (btn) { btn.style.opacity = '1'; btn.title = '';  }
       playAnim('anim-restore', 230, null);
     } else {
       bringToFront(win);
@@ -829,7 +1031,7 @@ function tick() {
       isMaximized = false;
       win.classList.remove('minimized', 'maximized');
       win.style.display = 'none';
-      taskbarApp.style.display = 'none';
+      _taskbar.removeItem('calc-taskbar');
       desktopIcon.classList.remove('hidden');
       const calcMaxIcon = document.getElementById('calc-max-icon');
       if (calcMaxIcon) calcMaxIcon.classList.remove('restore');
@@ -1285,18 +1487,38 @@ document.querySelectorAll('.th-tip').forEach(el => {
   var pvMinBtn = document.getElementById('pv-min-btn');
   var pvMaxBtn = document.getElementById('pv-max-btn');
   var pvMaxIcon = document.getElementById('pv-max-btn-icon');
-  var pvTaskbarBtn = document.getElementById('pv-taskbar-btn');
   var smImagensBtn = document.getElementById('sm-imagens-btn');
   var pvClosing = false;
   var pvMaximized = false;
   viewer.addEventListener('mousedown', function () { bringToFront(overlay); }, true);
-  var pvRestoreState = null; 
+  var pvRestoreState = null;
 
-  
   pvImg.setAttribute('draggable', 'false');
   pvImg.style.userSelect = 'none';
   pvImg.style.webkitUserSelect = 'none';
   pvImg.style.pointerEvents = 'none';
+
+  function getPvBtn() { return _taskbar.getItem('pv-taskbar'); }
+
+  function createPvBtn() {
+    var btn = document.createElement('div');
+    btn.className = 'taskbar-app';
+    
+    btn.textContent = '🖼️ Visualizador de Imagens';
+    btn.addEventListener('click', function () {
+      if (btn.classList.contains('faded')) {
+        viewer.classList.remove('pv-minimized');
+        pvClearAnims();
+        void viewer.offsetWidth;
+        viewer.classList.add('pv-anim-restore');
+        btn.classList.remove('faded');
+        btn.title = '';
+        setTimeout(function () { pvClearAnims(); }, 230);
+      }
+      bringToFront(overlay);
+    });
+    return btn;
+  }
 
   function pvUpdateCounter() {
     pvCounter.textContent = (currentIdx + 1) + ' / ' + TOTAL;
@@ -1380,9 +1602,11 @@ document.querySelectorAll('.th-tip').forEach(el => {
     void viewer.offsetWidth;
     viewer.classList.add('pv-anim-open');
     setTimeout(function () { pvClearAnims(); }, 250);
-    pvTaskbarBtn.classList.add('visible');
-    pvTaskbarBtn.classList.remove('faded');
-    pvTaskbarBtn.title = '';
+    if (!_taskbar.getItem('pv-taskbar')) {
+      _taskbar.addItem('pv-taskbar', createPvBtn());
+    }
+    var btn = getPvBtn();
+    if (btn) { btn.classList.remove('faded'); btn.title = ''; }
     document.addEventListener('dragstart', blockDrag, true);
     document.addEventListener('drag',      blockDrag, true);
     if (customSrc) {
@@ -1399,7 +1623,7 @@ document.querySelectorAll('.th-tip').forEach(el => {
     ttBox.style.display = 'none';
     document.removeEventListener('dragstart', blockDrag, true);
     document.removeEventListener('drag',      blockDrag, true);
-    
+
     viewer.classList.remove('pv-minimized', 'pv-maximized');
     pvClearAnims();
     void viewer.offsetWidth;
@@ -1413,42 +1637,23 @@ document.querySelectorAll('.th-tip').forEach(el => {
       pvMaxIcon.classList.remove('restore');
       pvMaximized = false;
       pvRestoreState = null;
-      pvTaskbarBtn.classList.remove('visible', 'faded');
-      pvTaskbarBtn.title = '';
+      _taskbar.removeItem('pv-taskbar');
       pvClosing = false;
     }, 190);
   }
 
-  
   pvMinBtn.addEventListener('click', function () {
     pvClearAnims();
     void viewer.offsetWidth;
     viewer.classList.add('pv-anim-minimize');
-    pvTaskbarBtn.classList.add('faded');
-    pvTaskbarBtn.title = 'Clique para restaurar';
+    var btn = getPvBtn();
+    if (btn) { btn.classList.add('faded'); btn.title = 'Clique para restaurar'; }
     setTimeout(function () {
       viewer.classList.add('pv-minimized');
       pvClearAnims();
     }, 200);
   });
 
-  
-  pvTaskbarBtn.addEventListener('click', function () {
-    if (pvTaskbarBtn.classList.contains('faded')) {
-      
-      viewer.classList.remove('pv-minimized');
-      pvClearAnims();
-      void viewer.offsetWidth;
-      viewer.classList.add('pv-anim-restore');
-      pvTaskbarBtn.classList.remove('faded');
-      pvTaskbarBtn.title = '';
-      setTimeout(function () { pvClearAnims(); }, 230);
-    }
-    
-    bringToFront(overlay);
-  });
-
-  
   pvMaxBtn.addEventListener('click', function () {
     if (!pvMaximized) {
       pvRestoreState = { left: viewer.style.left, top: viewer.style.top,
@@ -1602,11 +1807,27 @@ document.querySelectorAll('.th-tip').forEach(el => {
   var trashCloseBtn = document.getElementById('trash-close-btn');
   var trashIcon = document.getElementById('trash-icon');
   var trashFile = document.getElementById('trash-file');
-  var trashTaskbarBtn = document.getElementById('trash-taskbar-btn');
   var trashClosing = false;
   var trashClickTimer = null;
 
   trashWin.addEventListener('mousedown', function () { bringToFront(trashOverlay); }, true);
+
+  function getTrashBtn() { return _taskbar.getItem('trash-taskbar'); }
+
+  function createTrashBtn() {
+    var btn = document.createElement('div');
+    btn.className = 'taskbar-app';
+    
+    btn.textContent = '🗑️ Lixeira';
+    btn.addEventListener('click', function () {
+      if (btn.classList.contains('faded')) {
+        trashWin.classList.remove('tw-minimized');
+        btn.classList.remove('faded');
+      }
+      bringToFront(trashOverlay);
+    });
+    return btn;
+  }
 
   function trashOpen() {
     if (trashOverlay.classList.contains('open')) {
@@ -1617,8 +1838,11 @@ document.querySelectorAll('.th-tip').forEach(el => {
     trashWin.classList.remove('tw-anim-close');
     trashOverlay.classList.remove('closing');
     trashOverlay.classList.add('open');
-    trashTaskbarBtn.classList.add('visible');
-    trashTaskbarBtn.classList.remove('faded');
+    if (!_taskbar.getItem('trash-taskbar')) {
+      _taskbar.addItem('trash-taskbar', createTrashBtn());
+    }
+    var btn = getTrashBtn();
+    if (btn) { btn.classList.remove('faded'); }
     bringToFront(trashOverlay);
     _winRegister('trash-window-overlay', trashClose);
     void trashWin.offsetWidth;
@@ -1636,7 +1860,7 @@ document.querySelectorAll('.th-tip').forEach(el => {
     setTimeout(function () {
       trashWin.classList.remove('tw-anim-close');
       trashOverlay.classList.remove('open', 'closing');
-      trashTaskbarBtn.classList.remove('visible', 'faded');
+      _taskbar.removeItem('trash-taskbar');
       trashClosing = false;
     }, 190);
   }
@@ -1664,14 +1888,6 @@ document.querySelectorAll('.th-tip').forEach(el => {
   });
 
   trashCloseBtn.addEventListener('click', trashClose);
-
-  trashTaskbarBtn.addEventListener('click', function () {
-    if (trashTaskbarBtn.classList.contains('faded')) {
-      trashWin.classList.remove('tw-minimized');
-      trashTaskbarBtn.classList.remove('faded');
-    }
-    bringToFront(trashOverlay);
-  });
 
   trashFile.addEventListener('click', function () {
     trashFile.classList.add('selected');
