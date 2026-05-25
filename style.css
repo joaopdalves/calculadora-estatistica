@@ -1559,3 +1559,61 @@ button:focus-visible,
 }
 #trash-taskbar-btn.visible       { display: flex; opacity: 1; }
 #trash-taskbar-btn.visible.faded { opacity: 0.55; cursor: pointer; }
+
+body.is-resizing,
+body.is-resizing * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+.resizing {
+  transition: none !important;
+}
+
+#ctx-menu {
+  position: fixed;
+  background: rgba(10,25,70,0.97);
+  border: 1px solid rgba(80,150,255,0.4);
+  border-radius: 6px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.55);
+  padding: 4px 0;
+  z-index: 9000;
+  min-width: 130px;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  font-size: 12px;
+  opacity: 0;
+  transform: scale(0.94);
+  transform-origin: top left;
+  pointer-events: none;
+  transition: opacity 0.13s ease, transform 0.13s ease;
+}
+#ctx-menu.ctx-open {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+#ctx-menu.ctx-close {
+  opacity: 0;
+  transform: scale(0.94);
+  pointer-events: none;
+}
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  color: #ddeeff;
+  cursor: pointer;
+  border-radius: 3px;
+  margin: 1px 3px;
+  transition: background 0.1s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ctx-item:hover {
+  background: rgba(80,150,255,0.22);
+}
+.ctx-item.ctx-disabled {
+  opacity: 0.38;
+  cursor: default;
+  pointer-events: none;
+}

@@ -5,10 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculadora Estatística Beta da Montanha 2.0</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="imagens/calculadora.png">
 </head>
 <body>
 
 <div id="tooltip-box"></div>
+
+<div id="ctx-menu">
+  <div class="ctx-item" id="ctx-copy">Copiar</div>
+  <div class="ctx-item" id="ctx-paste">Colar</div>
+</div>
 
 <div id="start-menu-overlay"></div>
 
@@ -27,15 +33,15 @@
         <img src="imagens/betinha.png" alt="betinha" onerror="this.style.display='none';this.nextSibling.querySelector('small').textContent='Imagem não encontrada'">
         <div class="sm-item-text">
           betinha.png
-          <small>Papel de parede · clique para aplicar</small>
+          <small>Papel de parede</small>
         </div>
       </div>
       <div class="sm-divider"></div>
-      <div class="sm-item" id="sm-calc-item">
+      <div class="sm-item" id="sm-calc-item" data-tip="Clique para abrir">
         <img src="imagens/beta.png" alt="Calculadora" onerror="this.style.fontSize='24px';this.removeAttribute('src')">
         <div class="sm-item-text">
           Calculadora Estatística
-          <small>Duplo clique para abrir</small>
+          <small>Realiza cálculos estatísticos</small>
         </div>
       </div>
     </div>
@@ -83,7 +89,7 @@
   <div class="taskbar-clock" id="clock"></div>
 </div>
 
-<div class="window">
+<div class="window" id="calc-window">
   <div class="title-bar">
     <div class="title-text">Calculadora Estatística</div>
     <div class="win-controls">
