@@ -344,24 +344,33 @@
 
         <div class="poisson-row">
           <div class="input-group" style="flex:1;min-width:140px;">
-            <label>Taxa média (λ) <span class="th-tip" data-tip="Número médio de ocorrências por unidade&#10;Deve ser positivo (λ > 0)&#10;Ex: 3 ligações por minuto → λ = 3">?</span></label>
-            <input type="number" id="p3-lambda" placeholder="Ex: 3" min="0.0001" step="any">
+            <label>Taxa média (λ) <span class="th-tip" data-tip="Número médio de ocorrências por unidade&#10;Pode ser zero ou positivo (λ ≥ 0)&#10;Ex: 3 ligações por minuto → λ = 3">?</span></label>
+            <input type="number" id="p3-lambda" placeholder="Ex: 3" min="0" step="any">
             <div class="hint">💡 Número médio de ocorrências por unidade de tempo ou espaço.</div>
           </div>
           <div class="input-group" style="flex:1;min-width:140px;">
-            <label>Ocorrências desejadas (k) <span class="th-tip" data-tip="Número de ocorrências a calcular&#10;Deve ser inteiro não negativo (0, 1, 2, ...)">?</span></label>
+            <label id="p3-k-label">Ocorrências desejadas (k) <span class="th-tip" data-tip="Número de ocorrências a calcular&#10;Deve ser inteiro não negativo (0, 1, 2, ...)&#10;No modo Intervalo: limite inferior (a)">?</span></label>
             <input type="number" id="p3-k" placeholder="Ex: 5" min="0" step="1">
-            <div class="hint">💡 Valor inteiro não negativo (0, 1, 2, 3 ...).</div>
+            <div class="hint" id="p3-k-hint">💡 Valor inteiro não negativo (0, 1, 2, 3 ...).</div>
           </div>
         </div>
 
         <div class="input-group">
-          <label>Operador de probabilidade <span class="th-tip" data-tip="Exatamente k: P(X = k)&#10;No máximo k: P(X ≤ k) = soma de P(0) até P(k)&#10;Pelo menos k: P(X ≥ k) = 1 − [P(0) + ... + P(k−1)]">?</span></label>
-          <select id="p3-op">
+          <label>Operador de probabilidade <span class="th-tip" data-tip="Exatamente k: P(X = k)&#10;No máximo k: P(X ≤ k) = soma de P(0) até P(k)&#10;Pelo menos k: P(X ≥ k) = 1 − [P(0) + ... + P(k−1)]&#10;Intervalo: P(a ≤ X ≤ b) = P(X ≤ b) − P(X ≤ a−1)">?</span></label>
+          <select id="p3-op" onchange="toggleIntervalo()">
             <option value="exact">Exatamente k ocorrências — P(X = k)</option>
             <option value="atmost">No máximo k ocorrências — P(X ≤ k)</option>
             <option value="atleast">Pelo menos k ocorrências — P(X ≥ k)</option>
+            <option value="between">Intervalo — P(a ≤ X ≤ b)</option>
           </select>
+        </div>
+
+        <div class="poisson-row" id="p3-k2-group" style="display:none;">
+          <div class="input-group" style="flex:1;min-width:140px;">
+            <label>Limite superior (b) <span class="th-tip" data-tip="Limite superior do intervalo&#10;Deve ser inteiro ≥ a&#10;P(a ≤ X ≤ b)">?</span></label>
+            <input type="number" id="p3-k2" placeholder="Ex: 8" min="0" step="1">
+            <div class="hint">💡 Inteiro ≥ k (a). Calcula P(a ≤ X ≤ b).</div>
+          </div>
         </div>
 
         <div class="poisson-adj-toggle" id="adj-toggle" onclick="toggleAdjuste()">

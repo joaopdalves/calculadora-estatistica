@@ -232,6 +232,67 @@ const fmt = v => {
   return parseFloat(v).toFixed(2).replace('.', ',');
 };
 
+// ── Filtro de entrada para as textareas da calculadora descritiva ──────────
+// Permite apenas: dígitos (0-9), vírgula, ponto, ponto-e-vírgula e espaços.
+(function () {
+  var DESC_TEXTAREAS = ['p0-input', 'p1-input', 'p2-input'];
+  var ALLOWED = /^[0-9.,; \t\n\r]*$/;
+
+  function filterValue(val) {
+    // Remove qualquer caractere que não seja número, vírgula, ponto, ponto-e-vírgula ou espaço
+    return val.replace(/[^0-9.,; \t\n\r]/g, '');
+  }
+
+  function attachFilter(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+
+    // Bloqueia teclas não permitidas (preserva teclas de controle)
+    el.addEventListener('keydown', function (e) {
+      // Permite: teclas de controle (backspace, delete, arrows, tab, enter, home, end, etc.)
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key.length > 1) return; // teclas especiais (Enter, Backspace, ArrowLeft…)
+      if (!ALLOWED.test(e.key)) {
+        e.preventDefault();
+      }
+    });
+
+    // Sanitiza no evento input (cobre colar via teclado Ctrl+V, arrastar texto, etc.)
+    el.addEventListener('input', function () {
+      var sel = el.selectionStart;
+      var original = el.value;
+      var filtered = filterValue(original);
+      if (filtered !== original) {
+        var diff = original.length - filtered.length;
+        el.value = filtered;
+        el.selectionStart = el.selectionEnd = Math.max(0, sel - diff);
+      }
+    });
+
+    // Sanitiza também no evento paste explicitamente
+    el.addEventListener('paste', function (e) {
+      e.preventDefault();
+      var pasted = (e.clipboardData || window.clipboardData).getData('text');
+      var clean = filterValue(pasted);
+      var start = el.selectionStart;
+      var end = el.selectionEnd;
+      el.value = el.value.substring(0, start) + clean + el.value.substring(end);
+      el.selectionStart = el.selectionEnd = start + clean.length;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+
+  // Aplica após o DOM estar pronto
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      DESC_TEXTAREAS.forEach(attachFilter);
+    });
+  } else {
+    DESC_TEXTAREAS.forEach(attachFilter);
+  }
+})();
+// ──────────────────────────────────────────────────────────────────────────
+
 function parseNumbers(str) {
   const normalized = str.replace(/[;]/g, ',').split(/[\s,]+/)
     .map(s => s.trim().replace(',', '.'))
@@ -625,13 +686,29 @@ function poissonFatorial(n) {
   return r;
 }
 
+function _logFatorial(n) {
+  // Calcula log(n!) somando logaritmos — nunca estoura independente do valor de n
+  let r = 0;
+  for (let i = 2; i <= n; i++) r += Math.log(i);
+  return r;
+}
+
 function poissonP(lambda, k) {
-  return (Math.exp(-lambda) * Math.pow(lambda, k)) / poissonFatorial(k);
+  if (lambda === 0) return k === 0 ? 1 : 0;
+  // Calcula em escala logarítmica para evitar overflow com λ ou k grandes:
+  // log P(X=k) = -λ + k·log(λ) - log(k!)
+  const logP = -lambda + k * Math.log(lambda) - _logFatorial(k);
+  return Math.exp(logP);
 }
 
 function poissonAtMost(lambda, k) {
   let sum = 0;
-  for (let i = 0; i <= k; i++) sum += poissonP(lambda, i);
+  for (let i = 0; i <= k; i++) {
+    sum += poissonP(lambda, i);
+    // Saída antecipada: quando a soma já convergiu para 1 com precisão de 10 casas,
+    // continuar somando não muda o resultado — evita travar com k absurdamente grande
+    if (sum >= 1 - 1e-10) return 1;
+  }
   return sum;
 }
 
@@ -655,9 +732,28 @@ function toggleAdjuste() {
   btn.classList.toggle('adj-active', open);
 }
 
+function toggleIntervalo() {
+  const op = document.getElementById('p3-op').value;
+  const k2Group = document.getElementById('p3-k2-group');
+  const kLabel = document.getElementById('p3-k-label');
+  const kHint = document.getElementById('p3-k-hint');
+  if (op === 'between') {
+    k2Group.style.display = '';
+    kLabel.innerHTML = 'Limite inferior (a) <span class="th-tip" data-tip="Início do intervalo&#10;Deve ser inteiro não negativo">?</span>';
+    kHint.textContent = '💡 Valor inteiro não negativo — início do intervalo.';
+  } else {
+    k2Group.style.display = 'none';
+    kLabel.innerHTML = 'Ocorrências desejadas (k) <span class="th-tip" data-tip="Número de ocorrências a calcular&#10;Deve ser inteiro não negativo (0, 1, 2, ...)">?</span>';
+    kHint.textContent = '💡 Valor inteiro não negativo (0, 1, 2, 3 ...).';
+  }
+  document.getElementById('p3-results').style.display = 'none';
+  showError('p3-error', '');
+}
+
 function clearPoisson() {
   document.getElementById('p3-lambda').value = '';
   document.getElementById('p3-k').value = '';
+  document.getElementById('p3-k2').value = '';
   document.getElementById('p3-op').value = 'exact';
   document.getElementById('p3-int-base').value = '';
   document.getElementById('p3-int-target').value = '';
@@ -668,6 +764,7 @@ function clearPoisson() {
   const btn = document.getElementById('adj-toggle');
   sec.classList.remove('adj-open');
   btn.classList.remove('adj-active');
+  toggleIntervalo();
 }
 
 const POISSON_EXAMPLES = [
@@ -677,6 +774,7 @@ const POISSON_EXAMPLES = [
     op: 'exact',
     base: '',
     target: '',
+    k2: '',
     note: '📋 Exemplo: Uma central recebe em média 3 ligações por minuto. Qual a probabilidade de receber exatamente 5 ligações em um minuto?'
   },
   {
@@ -685,6 +783,7 @@ const POISSON_EXAMPLES = [
     op: 'atmost',
     base: '',
     target: '',
+    k2: '',
     note: '📋 Exemplo: Uma padaria vende em média 2 bolos especiais por dia. Qual a probabilidade de vender no máximo 3 bolos em um dia?'
   },
   {
@@ -693,7 +792,17 @@ const POISSON_EXAMPLES = [
     op: 'atleast',
     base: '',
     target: '',
+    k2: '',
     note: '📋 Exemplo: Um hospital registra em média 4 emergências por hora. Qual a probabilidade de ocorrer pelo menos 2 emergências em uma hora?'
+  },
+  {
+    lambda: 5,
+    k: 3,
+    op: 'between',
+    base: '',
+    target: '',
+    k2: 7,
+    note: '📋 Exemplo: Uma loja recebe em média 5 clientes por hora. Qual a probabilidade de atender entre 3 e 7 clientes em uma hora?'
   }
 ];
 
@@ -708,6 +817,9 @@ function examplePoisson() {
   document.getElementById('p3-lambda').value = ex.lambda;
   document.getElementById('p3-k').value = ex.k;
   document.getElementById('p3-op').value = ex.op;
+  document.getElementById('p3-k2').value = ex.k2 || '';
+
+  toggleIntervalo();
 
   const sec = document.getElementById('poisson-adj-section');
   const btn = document.getElementById('adj-toggle');
@@ -735,19 +847,59 @@ function examplePoisson() {
 function calcPoisson() {
   showError('p3-error', '');
 
-  const lambdaRaw = parseFloat(document.getElementById('p3-lambda').value.replace(',', '.'));
-  const kRaw = parseInt(document.getElementById('p3-k').value);
+  const lambdaStr = document.getElementById('p3-lambda').value.trim().replace(',', '.');
+  const kStr = document.getElementById('p3-k').value.trim();
+  const k2Str = document.getElementById('p3-k2') ? document.getElementById('p3-k2').value.trim() : '';
   const op = document.getElementById('p3-op').value;
   const baseRaw = parseFloat(document.getElementById('p3-int-base').value.replace(',', '.'));
   const targetRaw = parseFloat(document.getElementById('p3-int-target').value.replace(',', '.'));
 
-  if (isNaN(lambdaRaw) || lambdaRaw <= 0) {
-    showError('p3-error', 'Informe uma taxa média λ válida (número positivo).');
+  // Limites máximos compatíveis com Estatística Aplicada
+  const LAMBDA_MAX = 100;
+  const K_MAX = 100;
+
+  // Validação λ: aceita 0 ou positivo até LAMBDA_MAX
+  const lambdaRaw = parseFloat(lambdaStr);
+  if (lambdaStr === '' || isNaN(lambdaRaw) || lambdaRaw < 0) {
+    showError('p3-error', 'Informe uma taxa média λ válida (número ≥ 0).');
     return;
   }
-  if (isNaN(kRaw) || kRaw < 0 || !Number.isInteger(kRaw)) {
+  if (lambdaRaw > LAMBDA_MAX) {
+    showError('p3-error', `A taxa média λ deve ser no máximo ${LAMBDA_MAX}. Valores acima disso estão fora do escopo da disciplina.`);
+    return;
+  }
+
+  // Validação k: rejeita decimais na string bruta (Caso #12 corrigido)
+  if (kStr === '' || isNaN(Number(kStr)) || kStr.includes('.') || kStr.includes(',')) {
     showError('p3-error', 'Informe um número de ocorrências k válido (inteiro ≥ 0).');
     return;
+  }
+  const kRaw = parseInt(kStr, 10);
+  if (kRaw < 0) {
+    showError('p3-error', 'Informe um número de ocorrências k válido (inteiro ≥ 0).');
+    return;
+  }
+  if (kRaw > K_MAX) {
+    showError('p3-error', `O número de ocorrências k deve ser no máximo ${K_MAX}. Valores acima disso estão fora do escopo da disciplina.`);
+    return;
+  }
+
+  // Validação k2 (apenas no modo intervalo)
+  let k2Raw = 0;
+  if (op === 'between') {
+    if (k2Str === '' || isNaN(Number(k2Str)) || k2Str.includes('.') || k2Str.includes(',')) {
+      showError('p3-error', 'Informe o limite superior b válido (inteiro ≥ a).');
+      return;
+    }
+    k2Raw = parseInt(k2Str, 10);
+    if (k2Raw < kRaw) {
+      showError('p3-error', 'O limite superior b deve ser maior ou igual a k (a).');
+      return;
+    }
+    if (k2Raw > K_MAX) {
+      showError('p3-error', `O limite superior b deve ser no máximo ${K_MAX}. Valores acima disso estão fora do escopo da disciplina.`);
+      return;
+    }
   }
 
   let lambda = lambdaRaw;
@@ -758,6 +910,10 @@ function calcPoisson() {
 
   if (hasBase && hasTarget) {
     lambda = lambdaRaw * (targetRaw / baseRaw);
+    if (lambda > LAMBDA_MAX) {
+      showError('p3-error', `O λ ajustado resultante (${lambda.toFixed(2).replace('.', ',')}) ultrapassa o limite de ${LAMBDA_MAX}. Reduza a taxa ou o intervalo alvo.`);
+      return;
+    }
     ajusteInfo = `λ ajustado = ${lambdaRaw} × (${targetRaw} / ${baseRaw}) = <b>${lambda.toFixed(4).replace('.', ',')}</b><br>`;
   } else if (hasBase !== hasTarget) {
     showError('p3-error', 'Preencha os dois campos de intervalo (base e alvo) ou deixe ambos em branco.');
@@ -771,11 +927,21 @@ function calcPoisson() {
   let stepsHtml = '';
 
   const eMinusL = Math.exp(-lambda);
-  const lambdaK = Math.pow(lambda, k);
-  const kFat = poissonFatorial(k);
+  // Para exibicao no passo a passo: se os valores intermediarios estouram,
+  // mostra texto em vez de Infinity ou NaN
+  const lambdaKRaw = Math.pow(lambda, k);
+  const lambdaK = isFinite(lambdaKRaw) ? lambdaKRaw : null;
+  const kFatRaw = poissonFatorial(k);
+  const kFat = isFinite(kFatRaw) ? kFatRaw : null;
+  const _fmt6 = v => (v !== null && isFinite(v)) ? v.toFixed(6).replace('.', ',') : '(número muito grande)';
   const pExact = poissonP(lambda, k);
 
   const formulaBase = `P(X = k) = (e<sup>−λ</sup> · λ<sup>k</sup>) / k!`;
+
+  // Aviso especial para λ=0
+  const lambdaZeroNote = lambda === 0
+    ? `<br><span style="font-size:11px;color:#7a9acc;">ℹ️ λ = 0: processo sem ocorrências esperadas (caso degenerado válido).</span>`
+    : '';
 
   if (op === 'exact') {
     prob = pExact;
@@ -785,43 +951,66 @@ function calcPoisson() {
       <b>Fórmula:</b> ${formulaBase}<br>
       <b>Substituindo:</b> P(X = ${k}) = (e<sup>−${lambda.toFixed(4).replace('.', ',')}</sup> · ${lambda.toFixed(4).replace('.', ',')} <sup>${k}</sup>) / ${k}!<br>
       <b>e<sup>−λ</sup></b> = e<sup>−${lambda.toFixed(4).replace('.', ',')}</sup> = ${eMinusL.toFixed(6).replace('.', ',')}<br>
-      <b>λ<sup>k</sup></b> = ${lambda.toFixed(4).replace('.', ',')} <sup>${k}</sup> = ${lambdaK.toFixed(6).replace('.', ',')}<br>
-      <b>k!</b> = ${k}! = ${kFat}<br>
-      <b>P(X = ${k})</b> = (${eMinusL.toFixed(6).replace('.', ',')} × ${lambdaK.toFixed(6).replace('.', ',')}) / ${kFat} = <b>${fmtProb(prob)}</b>
+      <b>λ<sup>k</sup></b> = ${lambda.toFixed(4).replace('.', ',')} <sup>${k}</sup> = ${_fmt6(lambdaK)}<br>
+      <b>k!</b> = ${k}! = ${kFat !== null ? kFat : '(número muito grande)'}<br>
+      <b>P(X = ${k})</b> = calculado via escala logarítmica = <b>${fmtProb(prob)}</b>${lambdaZeroNote}
     `;
   } else if (op === 'atmost') {
     prob = poissonAtMost(lambda, k);
     labelText = `P(X ≤ ${k})`;
+    const STEP_MAX = 20;
     let partes = [];
-    let somaDetalhada = '';
-    for (let i = 0; i <= k; i++) {
+    for (let i = 0; i <= Math.min(k, STEP_MAX - 1); i++) {
       const pi = poissonP(lambda, i);
       partes.push(`P(X=${i}) = ${fmtProb(pi)}`);
-      somaDetalhada += (i > 0 ? ' + ' : '') + fmtProb(pi);
     }
+    const truncNote = k >= STEP_MAX ? `<br>&nbsp;&nbsp;<i>... (${k - STEP_MAX + 1} parcelas omitidas para não travar o navegador)</i>` : '';
     stepsHtml = `
       ${ajusteInfo}
       <b>Fórmula:</b> P(X ≤ ${k}) = Σ P(X = i) para i = 0 até ${k}<br>
       <b>Parcelas:</b><br>
-      ${partes.map(p => '&nbsp;&nbsp;' + p).join('<br>')}<br>
-      <b>Soma:</b> ${somaDetalhada} = <b>${fmtProb(prob)}</b>
+      ${partes.map(p => '&nbsp;&nbsp;' + p).join('<br>')}${truncNote}<br>
+      <b>Resultado:</b> <b>${fmtProb(prob)}</b>${lambdaZeroNote}
     `;
-  } else {
+  } else if (op === 'atleast') {
     prob = poissonAtLeast(lambda, k);
     labelText = `P(X ≥ ${k})`;
     const complement = poissonAtMost(lambda, k - 1);
+    const STEP_MAX = 20;
     let partes = [];
-    for (let i = 0; i <= k - 1; i++) {
+    for (let i = 0; i <= Math.min(k - 1, STEP_MAX - 1); i++) {
       const pi = poissonP(lambda, i);
       partes.push(`P(X=${i}) = ${fmtProb(pi)}`);
     }
+    const truncNoteAl = (k - 1) >= STEP_MAX ? `<br>&nbsp;&nbsp;<i>... (${k - 1 - STEP_MAX + 1} parcelas omitidas para não travar o navegador)</i>` : '';
     stepsHtml = `
       ${ajusteInfo}
       <b>Fórmula:</b> P(X ≥ ${k}) = 1 − P(X ≤ ${k - 1})<br>
       <b>Parcelas de P(X ≤ ${k - 1}):</b><br>
-      ${k === 0 ? '&nbsp;&nbsp;(nenhuma — P(X ≤ −1) = 0)' : partes.map(p => '&nbsp;&nbsp;' + p).join('<br>')}<br>
+      ${k === 0 ? '&nbsp;&nbsp;(nenhuma — P(X ≤ −1) = 0)' : partes.map(p => '&nbsp;&nbsp;' + p).join('<br>') + truncNoteAl}<br>
       <b>P(X ≤ ${k - 1})</b> = ${fmtProb(complement)}<br>
-      <b>P(X ≥ ${k})</b> = 1 − ${fmtProb(complement)} = <b>${fmtProb(prob)}</b>
+      <b>P(X ≥ ${k})</b> = 1 − ${fmtProb(complement)} = <b>${fmtProb(prob)}</b>${lambdaZeroNote}
+    `;
+  } else if (op === 'between') {
+    const b = k2Raw;
+    const pLeqB = poissonAtMost(lambda, b);
+    const pLeqAm1 = k > 0 ? poissonAtMost(lambda, k - 1) : 0;
+    prob = pLeqB - pLeqAm1;
+    labelText = `P(${k} ≤ X ≤ ${b})`;
+    const STEP_MAX = 20;
+    let partes = [];
+    for (let i = k; i <= Math.min(b, k + STEP_MAX - 1); i++) {
+      const pi = poissonP(lambda, i);
+      partes.push(`P(X=${i}) = ${fmtProb(pi)}`);
+    }
+    const truncNoteBt = (b - k + 1) > STEP_MAX ? `<br>&nbsp;&nbsp;<i>... (${b - k + 1 - STEP_MAX} parcelas omitidas para não travar o navegador)</i>` : '';
+    stepsHtml = `
+      ${ajusteInfo}
+      <b>Fórmula:</b> P(${k} ≤ X ≤ ${b}) = P(X ≤ ${b}) − P(X ≤ ${k - 1})<br>
+      <b>Equivalente a:</b> Σ P(X = i) para i = ${k} até ${b}<br>
+      <b>Parcelas:</b><br>
+      ${partes.map(p => '&nbsp;&nbsp;' + p).join('<br>')}${truncNoteBt}<br>
+      <b>Resultado:</b> <b>${fmtProb(prob)}</b>${lambdaZeroNote}
     `;
   }
 
@@ -829,7 +1018,8 @@ function calcPoisson() {
   document.getElementById('p3-result-value').textContent = fmtProb(prob) + '  (' + fmtPct(prob) + ')';
   document.getElementById('p3-steps').innerHTML = stepsHtml;
 
-  const tableLimit = Math.max(k + 4, 10);
+  const TABLE_MAX = 200;
+  const tableLimit = Math.min(Math.max((op === 'between' ? k2Raw : k) + 4, 10), TABLE_MAX);
   let distBody = '';
   let runningSum = 0;
   for (let i = 0; i <= tableLimit; i++) {
@@ -839,6 +1029,7 @@ function calcPoisson() {
     if (op === 'exact' && i === k) highlight = true;
     if (op === 'atmost' && i <= k) highlight = true;
     if (op === 'atleast' && i >= k) highlight = true;
+    if (op === 'between' && i >= k && i <= k2Raw) highlight = true;
     distBody += `<tr${highlight ? ' class="highlight-row"' : ''}>
       <td>${i}</td>
       <td>${fmtProb(pi)}</td>
@@ -1989,7 +2180,14 @@ document.addEventListener('keydown', function (e) {
     ctxMenu.style.top = '-9999px';
     ctxMenu.style.display = 'block';
 
-    var hasSelection = ctxTarget && ctxTarget.selectionStart !== ctxTarget.selectionEnd;
+    var isNumberInput = ctxTarget && ctxTarget.tagName === 'INPUT' && ctxTarget.type === 'number';
+    var hasSelection;
+    if (isNumberInput) {
+      // input[type="number"] não expõe selectionStart/selectionEnd — habilita copiar se há valor
+      hasSelection = ctxTarget && ctxTarget.value.trim() !== '';
+    } else {
+      hasSelection = ctxTarget && ctxTarget.selectionStart !== ctxTarget.selectionEnd;
+    }
     if (hasSelection) {
       ctxCopy.classList.remove('ctx-disabled');
     } else {
@@ -2025,48 +2223,95 @@ document.addEventListener('keydown', function (e) {
     }, 140);
   }
 
-  ctxCopy.addEventListener('mousedown', function (e) { e.preventDefault(); e.stopPropagation(); });
-  ctxCopy.addEventListener('click', function (e) {
+  // COPIAR: captura o texto selecionado via textarea auxiliar ANTES de fechar o menu,
+  // mantendo o foco e a seleção intactos no momento do execCommand.
+  ctxCopy.addEventListener('mousedown', function (e) {
+    e.preventDefault(); // impede que o campo de texto perca o foco
     e.stopPropagation();
     if (!ctxTarget || ctxCopy.classList.contains('ctx-disabled')) return;
-    var start = ctxTarget.selectionStart;
-    var end = ctxTarget.selectionEnd;
-    if (start === end) { closeCtx(); return; }
-    var selected = ctxTarget.value.substring(start, end);
-    navigator.clipboard.writeText(selected).catch(function () {
-      var ta = document.createElement('textarea');
-      ta.value = selected;
-      ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    });
+
+    var isNumberInput = ctxTarget.tagName === 'INPUT' && ctxTarget.type === 'number';
+    var selected;
+
+    if (isNumberInput) {
+      // input[type="number"] não suporta selectionStart — copia o valor inteiro
+      selected = ctxTarget.value.trim();
+      if (!selected) return;
+    } else {
+      var start = ctxTarget.selectionStart;
+      var end = ctxTarget.selectionEnd;
+      if (start === end) return;
+      selected = ctxTarget.value.substring(start, end);
+    }
+
+    // Tenta Clipboard API moderna primeiro (funciona em HTTPS com foco)
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(selected).catch(function () {
+        copyViaExecCommand(selected);
+      });
+    } else {
+      copyViaExecCommand(selected);
+    }
     closeCtx();
   });
+  ctxCopy.addEventListener('click', function (e) { e.stopPropagation(); });
 
-  ctxPaste.addEventListener('mousedown', function (e) { e.preventDefault(); e.stopPropagation(); });
+  function copyViaExecCommand(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none;';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand('copy'); } catch (err) {}
+    document.body.removeChild(ta);
+  }
+
+  // COLAR: tenta Clipboard API; se bloqueada, foca o campo e usa execCommand
+  // de forma síncrona (sem fechar o menu antes, para não perder contexto).
+  ctxPaste.addEventListener('mousedown', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  });
   ctxPaste.addEventListener('click', function (e) {
     e.stopPropagation();
     if (!ctxTarget) return;
     var el = ctxTarget;
-    closeCtx();
+
     if (navigator.clipboard && navigator.clipboard.readText) {
       navigator.clipboard.readText().then(function (text) {
+        closeCtx();
         insertAtCursor(el, text);
       }).catch(function () {
-        showPasteBlocked();
+        // Clipboard API bloqueada: foca o campo e tenta execCommand síncrono
+        closeCtx();
+        el.focus();
+        try {
+          document.execCommand('paste');
+        } catch (err) {
+          showPasteBlocked();
+        }
       });
     } else {
+      closeCtx();
       el.focus();
-      var ok = false;
-      try { ok = document.execCommand('paste'); } catch (err) {}
-      if (!ok) showPasteBlocked();
+      try {
+        var ok = document.execCommand('paste');
+        if (!ok) showPasteBlocked();
+      } catch (err) {
+        showPasteBlocked();
+      }
     }
   });
 
   function insertAtCursor(el, text) {
     el.focus();
+    var isNumberInput = el.tagName === 'INPUT' && el.type === 'number';
+    if (isNumberInput) {
+      el.value = text;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    }
     var start = el.selectionStart;
     var end = el.selectionEnd;
     var val = el.value;
@@ -2078,12 +2323,11 @@ document.addEventListener('keydown', function (e) {
   function showPasteBlocked() {
     var ttBox = document.getElementById('tooltip-box');
     if (!ttBox) return;
-    var prev = ttBox.style.display;
-    ttBox.textContent = 'Navegador bloqueou colar. Use Ctrl+V.';
-    ttBox.style.left = Math.round(window.innerWidth / 2 - 100) + 'px';
+    ttBox.textContent = 'Use Ctrl+V para colar.';
+    ttBox.style.left = Math.round(window.innerWidth / 2 - 80) + 'px';
     ttBox.style.top = '80px';
     ttBox.style.display = 'block';
-    setTimeout(function () { ttBox.style.display = prev || 'none'; }, 2400);
+    setTimeout(function () { ttBox.style.display = 'none'; }, 2400);
   }
 
   document.addEventListener('mousedown', function (e) {
