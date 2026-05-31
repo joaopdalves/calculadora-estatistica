@@ -84,17 +84,31 @@
   <div class="taskbar-clock" id="clock"></div>
 </div>
 
-<div class="window" id="calc-window">
+<div class="window" id="calc-window" style="display:none;">
   <div class="title-bar">
-    <div class="title-text">Calculadora Estatística</div>
+    <div class="title-text" id="win-title-text">Calculadora Estatística</div>
     <div class="win-controls">
       <div class="win-btn win-btn-min">─</div>
-      <div class="win-btn win-btn-max"><span id="calc-max-icon"></span></div>
+      <div class="win-btn win-btn-max" id="calc-max-btn"><span id="calc-max-icon"></span></div>
       <div class="win-btn win-btn-close">✕</div>
     </div>
   </div>
 
-  <div class="window-body">
+  <div id="view-home" class="window-body calc-view">
+    <div id="home-body">
+      <div id="home-display">Calculadora Estatística Beta da Montanha 2.0</div>
+      <div id="home-buttons">
+        <button class="home-calc-btn" id="home-btn-desc" onclick="homeGoTo('desc')">Calculadora Descritiva</button>
+        <button class="home-calc-btn" id="home-btn-inf" onclick="homeGoTo('inf')">Calculadora Inferencial</button>
+      </div>
+      <div id="home-link-row">
+        <span id="home-yt-link" onclick="homeOpenYT()">Quer saber mais sobre Estatística Aplicada? Clique aqui!</span>
+      </div>
+      <div id="home-version-badge">Versão 2.0</div>
+    </div>
+  </div>
+
+  <div id="view-calc" class="window-body calc-view" style="display:none;">
     <div class="app-header">
       <div class="app-logo" style="width:64px;height:64px;flex-shrink:0;">
         <img src="imagens/beta.png" width="64" height="64" style="object-fit:contain;display:block;border-radius:10px;">
@@ -107,7 +121,7 @@
         <div class="mode-btn active" id="mode-btn-desc" onclick="setMode('desc')">Descritiva</div>
         <div class="mode-btn" id="mode-btn-inf" onclick="setMode('inf')">Inferencial</div>
       </div>
-      <div class="group-badge">Versão 2.0</div>
+      <button class="group-badge group-badge-home" id="home-badge" onclick="openHome()" data-tip="Voltar para a tela inicial" type="button">Home</button>
     </div>
 
     <div id="desc-section">
@@ -126,8 +140,8 @@
         </div>
         <div class="btn-row">
           <button class="btn btn-primary" onclick="calcP0()">▶ Calcular</button>
-          <button class="btn btn-secondary" onclick="clearP0()">✕ Limpar</button>
-          <button class="btn btn-secondary" onclick="exampleP0()">
+          <button class="btn btn-secondary" onclick="clearP0(this)">✕ Limpar</button>
+          <button class="btn btn-secondary" onclick="exampleP0(this)">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;">
               <path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/>
             </svg>
@@ -169,9 +183,8 @@
             </div>
           </div>
           <div class="results-detail">
-            <div class="divider"></div>
-            <div class="detail-title">Fórmulas utilizadas</div>
-            <div id="p0-formulas" style="font-size:11.5px;color:#2a4a90;line-height:2;"></div>
+            <div class="detail-title">Desenvolvimento</div>
+            <div id="p0-formulas" style="font-size:12px;color:#2a4a90;line-height:2.1;"></div>
           </div>
         </div>
       </div>
@@ -180,13 +193,13 @@
         <div class="section-label">Entrada de Dados</div>
         <div class="input-group">
           <label>Conjunto de dados (11 a 19 elementos):</label>
-          <textarea id="p1-input" placeholder="Ex: 12, 15, 18, 12, 20, 15, 18, 12, 16, 15, 14"></textarea>
+          <textarea id="p1-input" placeholder="Ex: 10, 12, 14, 12, 16, 18, 14, 12, 10, 16, 14"></textarea>
           <div class="hint">💡 Separe os valores por vírgula, ponto e vírgula ou espaço.</div>
         </div>
         <div class="btn-row">
           <button class="btn btn-primary" onclick="calcP1()">▶ Calcular</button>
-          <button class="btn btn-secondary" onclick="clearP1()">✕ Limpar</button>
-          <button class="btn btn-secondary" onclick="exampleP1()">
+          <button class="btn btn-secondary" onclick="clearP1(this)">✕ Limpar</button>
+          <button class="btn btn-secondary" onclick="exampleP1(this)">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;">
               <path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/>
             </svg>
@@ -202,7 +215,7 @@
           </div>
           <div class="results-grid" style="border-top:1px solid rgba(80,140,210,0.2);">
             <div class="result-cell">
-              <div class="result-cell-label">Média (x̄) <span class="th-tip" data-tip="x̄ = Σ(xᵢ·fᵢ) / Σfᵢ">?</span></div>
+              <div class="result-cell-label">Média (x̄) <span class="th-tip" data-tip="Média ponderada pelas frequências">?</span></div>
               <div class="result-cell-value" id="p1-mean">—</div>
             </div>
             <div class="result-cell">
@@ -210,33 +223,33 @@
               <div class="result-cell-value" id="p1-mode">—</div>
             </div>
             <div class="result-cell">
-              <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Valor onde F ≥ n/2">?</span></div>
+              <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Valor que divide a distribuição ao meio">?</span></div>
               <div class="result-cell-value" id="p1-median">—</div>
             </div>
             <div class="result-cell">
-              <div class="result-cell-label">Amplitude (AT) <span class="th-tip" data-tip="AT = Xmáx − Xmín">?</span></div>
+              <div class="result-cell-label">Amplitude (AT) <span class="th-tip" data-tip="Diferença entre o maior e o menor valor">?</span></div>
               <div class="result-cell-value" id="p1-range">—</div>
             </div>
             <div class="result-cell">
-              <div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="σ = √[ Σfᵢ(xᵢ−x̄)² / n ]">?</span></div>
+              <div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="Raiz quadrada da variância ponderada">?</span></div>
               <div class="result-cell-value" id="p1-std">—</div>
             </div>
             <div class="result-cell">
-              <div class="result-cell-label">Total (Σfᵢ) <span class="th-tip" data-tip="Soma de todas as frequências = n">?</span></div>
+              <div class="result-cell-label">Total (n) <span class="th-tip" data-tip="Quantidade total de elementos">?</span></div>
               <div class="result-cell-value" id="p1-n">—</div>
             </div>
           </div>
           <div class="results-detail">
-            <div class="detail-title">Tabela de frequências</div>
+            <div class="detail-title">Tabela de Frequências</div>
             <div class="table-wrapper">
               <table class="step-table">
                 <thead>
                   <tr>
-                    <th><span class="th-wrap">xᵢ <span class="th-tip" data-tip="Valor">?</span></span></th>
-                    <th><span class="th-wrap">fᵢ <span class="th-tip" data-tip="Frequência absoluta">?</span></span></th>
-                    <th><span class="th-wrap">F <span class="th-tip" data-tip="Frequência acumulada">?</span></span></th>
-                    <th><span class="th-wrap">xᵢ·fᵢ <span class="th-tip" data-tip="Produto valor × frequência">?</span></span></th>
-                    <th><span class="th-wrap">fᵢ(xᵢ−x̄)² <span class="th-tip" data-tip="Contribuição para desvio padrão">?</span></span></th>
+                    <th><span class="th-wrap">xᵢ <span class="th-tip" data-tip="Valor observado">?</span></span></th>
+                    <th><span class="th-wrap">fi <span class="th-tip" data-tip="Frequência absoluta">?</span></span></th>
+                    <th><span class="th-wrap">Fi <span class="th-tip" data-tip="Frequência acumulada">?</span></span></th>
+                    <th><span class="th-wrap">xᵢ·fi <span class="th-tip" data-tip="Produto do valor pela frequência">?</span></span></th>
+                    <th><span class="th-wrap">fi(xᵢ−x̄)² <span class="th-tip" data-tip="Parcela do desvio padrão">?</span></span></th>
                   </tr>
                 </thead>
                 <tbody id="p1-detail-body"></tbody>
@@ -245,9 +258,8 @@
             </div>
           </div>
           <div class="results-detail">
-            <div class="divider"></div>
-            <div class="detail-title">Fórmulas utilizadas</div>
-            <div id="p1-formulas" style="font-size:11.5px;color:#2a4a90;line-height:2;"></div>
+            <div class="detail-title">Desenvolvimento</div>
+            <div id="p1-formulas" style="font-size:12px;color:#2a4a90;line-height:2.1;"></div>
           </div>
         </div>
       </div>
@@ -256,17 +268,18 @@
         <div class="section-label">Entrada de Dados</div>
         <div class="input-group">
           <label>Conjunto de dados (20 ou mais elementos):</label>
-          <textarea id="p2-input" placeholder="Ex: 23, 45, 31, 28, 52, 41, 37, 29, 44, 38 ..."></textarea>
+          <textarea id="p2-input" placeholder="Ex: 10, 15, 22, 18, 25, 30, 12, 19, 27, 14, 21, 16, 28, 23, 11, 20, 17, 26, 13, 24"></textarea>
           <div class="hint">💡 Separe os valores por vírgula, ponto e vírgula ou espaço.</div>
         </div>
         <div class="input-group">
-          <label>Número de classes (opcional) <span class="th-tip" data-tip="Deixe em branco para usar a Regra de Sturges&#10;k = 1 + 3,322 · log₁₀(n)&#10;Mínimo 2, máximo 20">?</span></label>
-          <input type="number" id="p2-nclasses" placeholder="Ex: 5 (opcional — padrão: Sturges)" min="2" max="20" step="1">
+          <label>Número de classes (opcional):</label>
+          <input type="number" id="p2-nclasses" placeholder="Deixe em branco para usar Sturges" min="2" max="20" step="1">
+          <div class="hint">💡 Se não informado, usa a Regra de Sturges: k = 1 + 3,322 · log₁₀(n).</div>
         </div>
         <div class="btn-row">
           <button class="btn btn-primary" onclick="calcP2()">▶ Calcular</button>
-          <button class="btn btn-secondary" onclick="clearP2()">✕ Limpar</button>
-          <button class="btn btn-secondary" onclick="exampleP2()">
+          <button class="btn btn-secondary" onclick="clearP2(this)">✕ Limpar</button>
+          <button class="btn btn-secondary" onclick="exampleP2(this)">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;">
               <path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/>
             </svg>
@@ -280,18 +293,44 @@
             <div class="detail-title">Rol <span class="th-tip" data-tip="Rol: dados dispostos em ordem crescente">?</span></div>
             <div id="p2-sorted" style="font-size:12px;color:#2a4a90;word-break:break-word;line-height:1.7;"></div>
           </div>
+          <div class="results-grid" style="border-top:1px solid rgba(80,140,210,0.2);">
+            <div class="result-cell">
+              <div class="result-cell-label">Média (x̄) <span class="th-tip" data-tip="Média calculada pelo ponto médio das classes">?</span></div>
+              <div class="result-cell-value" id="p2-mean">—</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-cell-label">Moda (Mo) <span class="th-tip" data-tip="Moda de Czuber — baseada nas frequências das classes">?</span></div>
+              <div class="result-cell-value" id="p2-mode">—</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Mediana interpolada na classe mediana">?</span></div>
+              <div class="result-cell-value" id="p2-median">—</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-cell-label">Amplitude (AT) <span class="th-tip" data-tip="Diferença entre o maior e o menor valor do conjunto">?</span></div>
+              <div class="result-cell-value" id="p2-range">—</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="Desvio padrão calculado pelas classes">?</span></div>
+              <div class="result-cell-value" id="p2-std">—</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-cell-label">Total (n) <span class="th-tip" data-tip="Quantidade total de elementos">?</span></div>
+              <div class="result-cell-value" id="p2-n">—</div>
+            </div>
+          </div>
           <div class="results-detail">
-            <div class="detail-title">Tabela de classes</div>
+            <div class="detail-title">Tabela de Classes</div>
             <div class="table-wrapper">
               <table class="step-table">
                 <thead>
                   <tr>
-                    <th><span class="th-wrap">Classe <span class="th-tip" data-tip="Intervalo da classe [lᵢ – ls[">?</span></span></th>
-                    <th><span class="th-wrap">mᵢ <span class="th-tip" data-tip="Ponto médio da classe">?</span></span></th>
-                    <th><span class="th-wrap">fᵢ <span class="th-tip" data-tip="Frequência absoluta">?</span></span></th>
-                    <th><span class="th-wrap">F <span class="th-tip" data-tip="Frequência acumulada">?</span></span></th>
-                    <th><span class="th-wrap">mᵢ·fᵢ <span class="th-tip" data-tip="Ponto médio × frequência">?</span></span></th>
-                    <th><span class="th-wrap">fᵢ(mᵢ−x̄)² <span class="th-tip" data-tip="Contribuição para desvio padrão">?</span></span></th>
+                    <th><span class="th-wrap">Classe <span class="th-tip" data-tip="Intervalo de classe [Li, Ls)">?</span></span></th>
+                    <th><span class="th-wrap">PM (mᵢ) <span class="th-tip" data-tip="Ponto médio da classe">?</span></span></th>
+                    <th><span class="th-wrap">fi <span class="th-tip" data-tip="Frequência absoluta">?</span></span></th>
+                    <th><span class="th-wrap">Fi <span class="th-tip" data-tip="Frequência acumulada">?</span></span></th>
+                    <th><span class="th-wrap">mᵢ·fi <span class="th-tip" data-tip="Ponto médio × frequência">?</span></span></th>
+                    <th><span class="th-wrap">fi(mᵢ−x̄)² <span class="th-tip" data-tip="Parcela do desvio padrão">?</span></span></th>
                   </tr>
                 </thead>
                 <tbody id="p2-detail-body"></tbody>
@@ -299,36 +338,9 @@
               </table>
             </div>
           </div>
-          <div class="results-grid" style="border-top:1px solid rgba(80,140,210,0.2);">
-            <div class="result-cell">
-              <div class="result-cell-label">Média (x̄) <span class="th-tip" data-tip="x̄ = Σ(mᵢ·fᵢ) / n&#10;Usa o ponto médio de cada classe">?</span></div>
-              <div class="result-cell-value" id="p2-mean">—</div>
-            </div>
-            <div class="result-cell">
-              <div class="result-cell-label">Moda (Mo) <span class="th-tip" data-tip="Fórmula de Czuber para dados agrupados&#10;Mo = lᵢ + [d₁/(d₁+d₂)]·h&#10;d₁ = fmodal − fanteriror&#10;d₂ = fmodal − fposterior">?</span></div>
-              <div class="result-cell-value" id="p2-mode">—</div>
-            </div>
-            <div class="result-cell">
-              <div class="result-cell-label">Mediana (Md) <span class="th-tip" data-tip="Interpolação linear na classe mediana&#10;Md = lᵢ + [(n/2 − F) / fᵢ] · h">?</span></div>
-              <div class="result-cell-value" id="p2-median">—</div>
-            </div>
-            <div class="result-cell">
-              <div class="result-cell-label">Amplitude (AT) <span class="th-tip" data-tip="Diferença entre o limite superior da última&#10;classe e o limite inferior da primeira">?</span></div>
-              <div class="result-cell-value" id="p2-range">—</div>
-            </div>
-            <div class="result-cell">
-              <div class="result-cell-label">Desvio Padrão (σ) <span class="th-tip" data-tip="σ = √[ Σfᵢ(mᵢ−x̄)² / n ]&#10;Calculado com os pontos médios das classes">?</span></div>
-              <div class="result-cell-value" id="p2-std">—</div>
-            </div>
-            <div class="result-cell">
-              <div class="result-cell-label">Total (Σfᵢ) <span class="th-tip" data-tip="Soma de todas as frequências&#10;= quantidade total de dados (n)">?</span></div>
-              <div class="result-cell-value" id="p2-n">—</div>
-            </div>
-          </div>
           <div class="results-detail">
-            <div class="divider"></div>
-            <div class="detail-title">Fórmulas utilizadas</div>
-            <div id="p2-formulas" style="font-size:11.5px;color:#2a4a90;line-height:2;"></div>
+            <div class="detail-title">Desenvolvimento</div>
+            <div id="p2-formulas" style="font-size:12px;color:#2a4a90;line-height:2.1;"></div>
           </div>
         </div>
       </div>
@@ -337,26 +349,24 @@
     <div id="inf-section" style="display:none;">
       <div class="tabs-bar">
         <div class="tab active">Distribuição de Poisson</div>
+        <span class="inf-help-link" onclick="openPoissonHelp()">Quer saber mais sobre Distribuição de Poisson? Clique aqui!</span>
       </div>
-
-      <div class="panel active" id="panel-poisson">
+      <div class="panel active" id="panel-3">
         <div class="section-label">Entrada de Dados</div>
-
         <div class="poisson-row">
           <div class="input-group" style="flex:1;min-width:140px;">
-            <label>Taxa média (λ) <span class="th-tip" data-tip="Número médio de ocorrências por unidade&#10;Pode ser zero ou positivo (λ ≥ 0)&#10;Ex: 3 ligações por minuto → λ = 3">?</span></label>
+            <label>Taxa média (λ) <span class="th-tip-lg" data-tip="Número médio de ocorrências por unidade de tempo ou espaço.">?</span></label>
             <input type="number" id="p3-lambda" placeholder="Ex: 3" min="0" step="any">
             <div class="hint">💡 Número médio de ocorrências por unidade de tempo ou espaço.</div>
           </div>
           <div class="input-group" style="flex:1;min-width:140px;">
-            <label id="p3-k-label">Ocorrências desejadas (k) <span class="th-tip" data-tip="Número de ocorrências a calcular&#10;Deve ser inteiro não negativo (0, 1, 2, ...)&#10;No modo Intervalo: limite inferior (a)">?</span></label>
+            <label id="p3-k-label">Ocorrências desejadas (k) <span class="th-tip-lg" data-tip="Número de ocorrências a calcular&#10;Deve ser inteiro não negativo (0, 1, 2, ...)">?</span></label>
             <input type="number" id="p3-k" placeholder="Ex: 5" min="0" step="1">
             <div class="hint" id="p3-k-hint">💡 Valor inteiro não negativo (0, 1, 2, 3 ...).</div>
           </div>
         </div>
-
         <div class="input-group">
-          <label>Operador de probabilidade <span class="th-tip" data-tip="Exatamente k: P(X = k)&#10;No máximo k: P(X ≤ k) = soma de P(0) até P(k)&#10;Pelo menos k: P(X ≥ k) = 1 − [P(0) + ... + P(k−1)]&#10;Intervalo: P(a ≤ X ≤ b) = P(X ≤ b) − P(X ≤ a−1)">?</span></label>
+          <label>Operador de probabilidade <span class="th-tip-lg" data-tip="Escolha o tipo de cálculo desejado">?</span></label>
           <select id="p3-op" onchange="toggleIntervalo()">
             <option value="exact">Exatamente k ocorrências — P(X = k)</option>
             <option value="atmost">No máximo k ocorrências — P(X ≤ k)</option>
@@ -364,19 +374,15 @@
             <option value="between">Intervalo — P(a ≤ X ≤ b)</option>
           </select>
         </div>
-
-        <div class="poisson-row" id="p3-k2-group" style="display:none;">
-          <div class="input-group" style="flex:1;min-width:140px;">
-            <label>Limite superior (b) <span class="th-tip" data-tip="Limite superior do intervalo&#10;Deve ser inteiro ≥ a&#10;P(a ≤ X ≤ b)">?</span></label>
-            <input type="number" id="p3-k2" placeholder="Ex: 8" min="0" step="1">
-            <div class="hint">💡 Inteiro ≥ k (a). Calcula P(a ≤ X ≤ b).</div>
-          </div>
+        <div id="p3-k2-group" class="input-group" style="display:none;">
+          <label>Valor superior (b):</label>
+          <input type="number" id="p3-k2" placeholder="Ex: 7" min="0" step="1">
+          <div class="hint">💡 b deve ser ≥ k.</div>
         </div>
-
-        <div class="poisson-adj-toggle" id="adj-toggle" onclick="toggleAdjuste()">
-          <span id="adj-toggle-icon">▸</span> Ajustar intervalo de λ (opcional)
+        <div class="poisson-adj-toggle-row">
+          <span class="poisson-adj-link" id="adj-toggle" onclick="toggleAdjuste()"><span id="adj-toggle-icon">►</span> Ajustar intervalo de λ (opcional)</span>
         </div>
-        <div id="poisson-adj-section">
+        <div id="poisson-adj-section" class="poisson-adj-section">
           <div class="poisson-row">
             <div class="input-group" style="flex:1;min-width:140px;">
               <label>Intervalo base (da taxa fornecida):</label>
@@ -393,8 +399,8 @@
 
         <div class="btn-row">
           <button class="btn btn-primary" onclick="calcPoisson()">▶ Calcular</button>
-          <button class="btn btn-secondary" onclick="clearPoisson()">✕ Limpar</button>
-          <button class="btn btn-secondary" onclick="examplePoisson()">
+          <button class="btn btn-secondary" onclick="clearPoisson(this)">✕ Limpar</button>
+          <button class="btn btn-secondary" onclick="examplePoisson(this)">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0d2a6a" style="display:inline-block;vertical-align:middle;">
               <path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 17h2v1h-2zm-1 2h4a1 1 0 0 1-4 0z" stroke="#0d2a6a" stroke-width="0.5"/>
             </svg>
@@ -447,7 +453,6 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>
 

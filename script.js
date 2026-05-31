@@ -257,20 +257,43 @@ function showError(id, msg) {
 }
 function showResults(id) {
   const el = document.getElementById(id);
-  el.classList.remove('anim-in');
+  el.classList.remove('anim-in', 'anim-out');
   void el.offsetWidth;
   el.style.display = 'block';
   el.classList.add('anim-in');
 }
+function hideResults(id, cb) {
+  const el = document.getElementById(id);
+  if (!el || el.style.display === 'none') { if (cb) cb(); return; }
+  el.classList.remove('anim-in');
+  el.classList.add('anim-out');
+  setTimeout(function() {
+    el.classList.remove('anim-out');
+    el.style.display = 'none';
+    if (cb) cb();
+  }, 180);
+}
+function flashInput(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('input-flash');
+  void el.offsetWidth;
+  el.classList.add('input-flash');
+  setTimeout(function() { el.classList.remove('input-flash'); }, 420);
+}
+function pulseBtn(btn) {
+  if (!btn) return;
+  btn.classList.remove('btn-clicked');
+  void btn.offsetWidth;
+  btn.classList.add('btn-clicked');
+  setTimeout(function() { btn.classList.remove('btn-clicked'); }, 240);
+}
 function switchTab(idx) {
-  const body = document.querySelector('.window-body');
-  body.classList.add('no-scroll');
   const descSection = document.getElementById('desc-section');
   const tabs = descSection.querySelectorAll('.tab');
   const panels = descSection.querySelectorAll('.panel');
   tabs.forEach((t, i) => t.classList.toggle('active', i === idx));
   panels.forEach((p, i) => p.classList.toggle('active', i === idx));
-  setTimeout(() => body.classList.remove('no-scroll'), 230);
 }
 var _setModeTimer = null;
 function setMode(mode) {
@@ -279,23 +302,28 @@ function setMode(mode) {
   const btnDesc = document.getElementById('mode-btn-desc');
   const btnInf = document.getElementById('mode-btn-inf');
   const subtitle = document.getElementById('app-subtitle');
-  const body = document.querySelector('.window-body');
   clearTimeout(_setModeTimer);
-  body.classList.add('no-scroll');
-  if (mode === 'desc') {
-    descSection.style.display = '';
-    infSection.style.display = 'none';
-    btnDesc.classList.add('active');
-    btnInf.classList.remove('active');
-    subtitle.textContent = 'Tendência Central e Dispersão · Dados Não Agrupados e Agrupados';
-  } else {
-    descSection.style.display = 'none';
-    infSection.style.display = '';
-    btnDesc.classList.remove('active');
-    btnInf.classList.add('active');
-    subtitle.textContent = 'Estatística Inferencial · Distribuição de Poisson';
-  }
-  _setModeTimer = setTimeout(() => body.classList.remove('no-scroll'), 250);
+  descSection.style.overflow = 'hidden';
+  infSection.style.overflow = 'hidden';
+  requestAnimationFrame(() => {
+    if (mode === 'desc') {
+      descSection.style.display = '';
+      infSection.style.display = 'none';
+      btnDesc.classList.add('active');
+      btnInf.classList.remove('active');
+      subtitle.textContent = 'Tendência Central e Dispersão · Dados Não Agrupados e Agrupados';
+    } else {
+      descSection.style.display = 'none';
+      infSection.style.display = '';
+      btnDesc.classList.remove('active');
+      btnInf.classList.add('active');
+      subtitle.textContent = 'Estatística Inferencial · Distribuição de Poisson';
+    }
+    _setModeTimer = setTimeout(() => {
+      descSection.style.overflow = '';
+      infSection.style.overflow = '';
+    }, 250);
+  });
 }
 function calcP0() {
   showError('p0-error', '');
@@ -363,23 +391,30 @@ function calcP0() {
   `;
   showResults('p0-results');
 }
-function clearP0() {
-  document.getElementById('p0-input').value = '';
-  document.getElementById('p0-results').style.display = 'none';
-  document.getElementById('p0-group-hint').innerHTML = '';
-  showError('p0-error', '');
+function clearP0(btn) {
+  pulseBtn(btn);
+  hideResults('p0-results', function() {
+    document.getElementById('p0-input').value = '';
+    document.getElementById('p0-group-hint').innerHTML = '';
+    showError('p0-error', '');
+  });
 }
-function exampleP0() {
+function exampleP0(btn) {
+  pulseBtn(btn);
   const n = Math.floor(Math.random() * 9) + 2;
   const vals = Array.from({ length: n }, () => Math.floor(Math.random() * 30) + 1);
   document.getElementById('p0-input').value = vals.join(' ');
+  flashInput('p0-input');
 }
-function clearP1() {
-  document.getElementById('p1-input').value = '';
-  document.getElementById('p1-results').style.display = 'none';
-  showError('p1-error', '');
+function clearP1(btn) {
+  pulseBtn(btn);
+  hideResults('p1-results', function() {
+    document.getElementById('p1-input').value = '';
+    showError('p1-error', '');
+  });
 }
-function exampleP1() {
+function exampleP1(btn) {
+  pulseBtn(btn);
   const n = Math.floor(Math.random() * 9) + 11;
   const base = Array.from({ length: Math.floor(Math.random() * 4) + 4 }, () =>
     Math.floor(Math.random() * 18) * 2 + 2
@@ -388,6 +423,7 @@ function exampleP1() {
   while (pool.length < n) pool.push(base[Math.floor(Math.random() * base.length)]);
   pool.sort((a, b) => a - b);
   document.getElementById('p1-input').value = pool.join(' ');
+  flashInput('p1-input');
 }
 function calcP1() {
   showError('p1-error', '');
@@ -473,13 +509,16 @@ function calcP1() {
   `;
   showResults('p1-results');
 }
-function clearP2() {
-  document.getElementById('p2-input').value = '';
-  document.getElementById('p2-nclasses').value = '';
-  document.getElementById('p2-results').style.display = 'none';
-  showError('p2-error', '');
+function clearP2(btn) {
+  pulseBtn(btn);
+  hideResults('p2-results', function() {
+    document.getElementById('p2-input').value = '';
+    document.getElementById('p2-nclasses').value = '';
+    showError('p2-error', '');
+  });
 }
-function exampleP2() {
+function exampleP2(btn) {
+  pulseBtn(btn);
   const n = Math.floor(Math.random() * 16) + 20;
   const min = Math.floor(Math.random() * 20) + 5;
   const spread = Math.floor(Math.random() * 60) + 40;
@@ -487,6 +526,7 @@ function exampleP2() {
   vals.sort((a, b) => a - b);
   document.getElementById('p2-input').value = vals.join(' ');
   document.getElementById('p2-nclasses').value = '';
+  flashInput('p2-input');
 }
 function calcP2() {
   showError('p2-error', '');
@@ -652,21 +692,23 @@ function toggleIntervalo() {
   document.getElementById('p3-results').style.display = 'none';
   showError('p3-error', '');
 }
-function clearPoisson() {
-  document.getElementById('p3-lambda').value = '';
-  document.getElementById('p3-k').value = '';
-  document.getElementById('p3-k2').value = '';
-  document.getElementById('p3-op').value = 'exact';
-  document.getElementById('p3-int-base').value = '';
-  document.getElementById('p3-int-target').value = '';
-  document.getElementById('p3-results').style.display = 'none';
-  document.getElementById('p3-example-note').style.display = 'none';
-  showError('p3-error', '');
-  const sec = document.getElementById('poisson-adj-section');
-  const btn = document.getElementById('adj-toggle');
-  sec.classList.remove('adj-open');
-  btn.classList.remove('adj-active');
-  toggleIntervalo();
+function clearPoisson(btn) {
+  pulseBtn(btn);
+  hideResults('p3-results', function() {
+    document.getElementById('p3-lambda').value = '';
+    document.getElementById('p3-k').value = '';
+    document.getElementById('p3-k2').value = '';
+    document.getElementById('p3-op').value = 'exact';
+    document.getElementById('p3-int-base').value = '';
+    document.getElementById('p3-int-target').value = '';
+    document.getElementById('p3-example-note').style.display = 'none';
+    showError('p3-error', '');
+    const sec = document.getElementById('poisson-adj-section');
+    const adjBtn = document.getElementById('adj-toggle');
+    sec.classList.remove('adj-open');
+    adjBtn.classList.remove('adj-active');
+    toggleIntervalo();
+  });
 }
 const POISSON_EXAMPLES = [
   {
@@ -707,7 +749,8 @@ const POISSON_EXAMPLES = [
   }
 ];
 let _lastExampleIdx = -1;
-function examplePoisson() {
+function examplePoisson(btn) {
+  pulseBtn(btn);
   let idx;
   do { idx = Math.floor(Math.random() * POISSON_EXAMPLES.length); } while (idx === _lastExampleIdx && POISSON_EXAMPLES.length > 1);
   _lastExampleIdx = idx;
@@ -718,23 +761,24 @@ function examplePoisson() {
   document.getElementById('p3-k2').value = ex.k2 || '';
   toggleIntervalo();
   const sec = document.getElementById('poisson-adj-section');
-  const btn = document.getElementById('adj-toggle');
+  const adjToggle = document.getElementById('adj-toggle');
   if (ex.base) {
     document.getElementById('p3-int-base').value = ex.base;
     document.getElementById('p3-int-target').value = ex.target;
     sec.classList.add('adj-open');
-    btn.classList.add('adj-active');
+    adjToggle.classList.add('adj-active');
   } else {
     document.getElementById('p3-int-base').value = '';
     document.getElementById('p3-int-target').value = '';
     sec.classList.remove('adj-open');
-    btn.classList.remove('adj-active');
+    adjToggle.classList.remove('adj-active');
   }
   const noteEl = document.getElementById('p3-example-note');
   noteEl.textContent = ex.note;
   noteEl.style.display = 'block';
   showError('p3-error', '');
   document.getElementById('p3-results').style.display = 'none';
+  flashInput('p3-lambda');
 }
 function calcPoisson() {
   showError('p3-error', '');
@@ -921,16 +965,19 @@ function tick() {
 }
 (() => { tick(); setInterval(tick, 10000); })();
 (function () {
-  const win = document.querySelector('.window');
+  var win = document.querySelector('.window');
+  var viewHome = document.getElementById('view-home');
+  var viewCalc = document.getElementById('view-calc');
+  var calcMaxBtn = document.getElementById('calc-max-btn');
+  var winTitleText = document.getElementById('win-title-text');
   win.addEventListener('mousedown', function () { bringToFront(win); }, true);
-  const desktopIcon = document.getElementById('desktop-icon');
-  let isMaximized = false;
-  let isMinimized = false;
-  let isClosed = false;
-  const ANIMS = ['anim-open', 'anim-close', 'anim-minimize', 'anim-restore', 'anim-maximize', 'anim-unmaximize'];
-  function clearAnims() {
-    win.classList.remove(...ANIMS);
-  }
+  var desktopIcon = document.getElementById('desktop-icon');
+  var isMaximized = false;
+  var isMinimized = false;
+  var isClosed = true;
+  var currentView = 'home';
+  var ANIMS = ['anim-open', 'anim-close', 'anim-minimize', 'anim-restore', 'anim-maximize', 'anim-unmaximize'];
+  function clearAnims() { win.classList.remove.apply(win.classList, ANIMS); }
   function playAnim(cls, duration, after) {
     clearAnims();
     void win.offsetWidth;
@@ -938,7 +985,7 @@ function tick() {
     bringToFront(win);
     var animZ = _zTop + 1000;
     win.style.zIndex = animZ;
-    setTimeout(() => {
+    setTimeout(function () {
       clearAnims();
       bringToFront(win);
       if (after) after();
@@ -955,89 +1002,114 @@ function tick() {
         isMinimized = false;
         win.classList.remove('minimized');
         btn.style.opacity = '1';
-        btn.title = '';
         playAnim('anim-restore', 230, null);
       }
       bringToFront(win);
-      win.focus && win.focus();
     });
     return btn;
   }
-  win.style.display = '';
-  playAnim('anim-open', 230, null);
+  function applyViewHome() {
+    currentView = 'home';
+    win.classList.add('home-view');
+    if (isMaximized) {
+      win.classList.remove('maximized');
+      isMaximized = false;
+      var calcMaxIcon = document.getElementById('calc-max-icon');
+      if (calcMaxIcon) calcMaxIcon.classList.remove('restore');
+    }
+    win.style.width = '';
+    win.style.height = '';
+    win.style.maxWidth = '';
+    win.style.maxHeight = '';
+    win.style.minWidth = '';
+    win.style.minHeight = '';
+    viewCalc.style.display = 'none';
+    viewHome.style.display = '';
+    if (calcMaxBtn) calcMaxBtn.style.display = 'none';
+    if (winTitleText) winTitleText.textContent = 'Calculadora Estatística';
+    void viewHome.offsetWidth;
+    viewHome.classList.remove('view-anim-in');
+    void viewHome.offsetWidth;
+    viewHome.classList.add('view-anim-in');
+    centreWindow();
+  }
+  function applyViewCalc(mode) {
+    currentView = 'calc';
+    win.classList.remove('home-view');
+    viewHome.style.display = 'none';
+    viewCalc.style.display = '';
+    if (calcMaxBtn) calcMaxBtn.style.display = '';
+    if (winTitleText) winTitleText.textContent = 'Calculadora Estatística';
+    if (mode) setMode(mode);
+    void viewCalc.offsetWidth;
+    viewCalc.classList.remove('view-anim-in');
+    void viewCalc.offsetWidth;
+    viewCalc.classList.add('view-anim-in');
+    requestAnimationFrame(function () { centreWindow(); });
+  }
+  function centreWindow() {
+    if (isMaximized || isMinimized) return;
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var taskbarH = 40;
+    var ww = win.offsetWidth;
+    var wh = win.offsetHeight;
+    var left = Math.max(0, (vw - ww) / 2);
+    var top = Math.max(0, (vh - taskbarH - wh) / 2);
+    win.style.left = left + 'px';
+    win.style.top = top + 'px';
+  }
+  win.style.display = 'none';
+  if (calcMaxBtn) calcMaxBtn.style.display = 'none';
   _winRegister('calc-window', function () { if (!isClosed) window._closeCalc(); });
-  var initialBtn = createTaskbarBtn();
-  _taskbar.addItem('calc-taskbar', initialBtn);
-  document.querySelector('.win-btn-min').addEventListener('click', () => {
+  document.querySelector('.win-btn-min').addEventListener('click', function () {
     if (isClosed || isMinimized) return;
-    playAnim('anim-minimize', 210, () => {
+    playAnim('anim-minimize', 210, function () {
       isMinimized = true;
       win.classList.add('minimized');
     });
     var btn = getBtn();
-    if (btn) { btn.style.opacity = '0.55'; btn.title = 'Clique para restaurar';  }
+    if (btn) { btn.style.opacity = '0.55'; }
   });
-  document.querySelector('.win-btn-max').addEventListener('click', () => {
-    if (isClosed) return;
-    const calcMaxIcon = document.getElementById('calc-max-icon');
+  document.querySelector('.win-btn-max').addEventListener('click', function () {
+    if (isClosed || currentView === 'home') return;
+    var calcMaxIcon = document.getElementById('calc-max-icon');
     if (!isMaximized) {
       clearAnims();
       void win.offsetWidth;
       win.classList.add('maximized', 'anim-maximize');
-      setTimeout(() => { clearAnims(); }, 200);
+      setTimeout(function () { clearAnims(); }, 200);
       if (calcMaxIcon) calcMaxIcon.classList.add('restore');
     } else {
       win.classList.remove('maximized');
       clearAnims();
       void win.offsetWidth;
       win.classList.add('anim-unmaximize');
-      setTimeout(() => { clearAnims(); }, 180);
+      setTimeout(function () { clearAnims(); }, 180);
       if (calcMaxIcon) calcMaxIcon.classList.remove('restore');
     }
     isMaximized = !isMaximized;
   });
-  document.querySelector('.win-btn-close').addEventListener('click', () => {
+  document.querySelector('.win-btn-close').addEventListener('click', function () {
     if (isClosed) return;
-    playAnim('anim-close', 190, () => {
-      isClosed = true;
-      isMinimized = false;
-      isMaximized = false;
-      win.classList.remove('minimized', 'maximized');
-      win.style.display = 'none';
-      _taskbar.removeItem('calc-taskbar');
-      desktopIcon.classList.remove('hidden');
-      _winRemove('calc-window');
-      const calcMaxIcon = document.getElementById('calc-max-icon');
-      if (calcMaxIcon) calcMaxIcon.classList.remove('restore');
-    });
+    window._closeCalc();
   });
-  let clickCount = 0;
-  let clickTimer = null;
-  desktopIcon.addEventListener('click', () => {
+  var clickCount = 0;
+  var clickTimer = null;
+  desktopIcon.addEventListener('click', function () {
     desktopIcon.classList.add('selected');
     clickCount++;
     if (clickCount === 1) {
-      clickTimer = setTimeout(() => { clickCount = 0; }, 400);
+      clickTimer = setTimeout(function () { clickCount = 0; }, 400);
     } else if (clickCount >= 2) {
       clearTimeout(clickTimer);
       clickCount = 0;
-      isClosed = false;
       desktopIcon.classList.remove('selected');
-      desktopIcon.classList.add('hidden');
-      win.style.display = '';
-      win.classList.remove('minimized', 'maximized');
-      isMinimized = false;
-      isMaximized = false;
-      var btn = createTaskbarBtn();
-      _taskbar.addItem('calc-taskbar', btn);
-      _winRegister('calc-window', function () { if (!isClosed) window._closeCalc(); });
-      playAnim('anim-open', 230, null);
+      window.openCalculadora();
     }
   });
-  document.addEventListener('click', (e) => {
-    if (!desktopIcon.contains(e.target)) {
-      desktopIcon.classList.remove('selected');
-    }
+  document.addEventListener('click', function (e) {
+    if (!desktopIcon.contains(e.target)) desktopIcon.classList.remove('selected');
   });
   window.openCalculadora = function () {
     if (isClosed) {
@@ -1050,32 +1122,55 @@ function tick() {
       var btn = createTaskbarBtn();
       _taskbar.addItem('calc-taskbar', btn);
       _winRegister('calc-window', function () { if (!isClosed) window._closeCalc(); });
+      applyViewHome();
       playAnim('anim-open', 230, null);
     } else if (isMinimized) {
       isMinimized = false;
       win.classList.remove('minimized');
       var btn = getBtn();
-      if (btn) { btn.style.opacity = '1'; btn.title = '';  }
+      if (btn) { btn.style.opacity = '1'; }
       playAnim('anim-restore', 230, null);
     } else {
       bringToFront(win);
     }
   };
+  window.openHome = function () {
+    if (isClosed) {
+      window.openCalculadora();
+      return;
+    }
+    if (isMinimized) {
+      isMinimized = false;
+      win.classList.remove('minimized');
+      var btn = getBtn();
+      if (btn) { btn.style.opacity = '1'; }
+      playAnim('anim-restore', 230, null);
+    }
+    applyViewHome();
+    bringToFront(win);
+  };
+  window.homeGoTo = function (mode) {
+    applyViewCalc(mode);
+    bringToFront(win);
+  };
   window._closeCalc = function () {
     if (isClosed) return;
     _winRemove('calc-window');
-    playAnim('anim-close', 190, () => {
+    playAnim('anim-close', 190, function () {
       isClosed = true;
       isMinimized = false;
       isMaximized = false;
-      win.classList.remove('minimized', 'maximized');
+      currentView = 'home';
+      win.classList.remove('minimized', 'maximized', 'home-view');
       win.style.display = 'none';
       _taskbar.removeItem('calc-taskbar');
       desktopIcon.classList.remove('hidden');
-      const calcMaxIcon = document.getElementById('calc-max-icon');
+      var calcMaxIcon = document.getElementById('calc-max-icon');
       if (calcMaxIcon) calcMaxIcon.classList.remove('restore');
     });
   };
+  window._centreCalcWindow = centreWindow;
+  window._applyViewCalc = applyViewCalc;
 })();
 const startBtn = document.querySelector('.start-btn');
 const startMenu = document.getElementById('start-menu');
@@ -1493,7 +1588,6 @@ document.querySelectorAll('.th-tip').forEach(el => {
         void viewer.offsetWidth;
         viewer.classList.add('pv-anim-restore');
         btn.classList.remove('faded');
-        btn.title = '';
         setTimeout(function () { pvClearAnims(); }, 230);
       }
       bringToFront(overlay);
@@ -1578,7 +1672,7 @@ document.querySelectorAll('.th-tip').forEach(el => {
       _taskbar.addItem('pv-taskbar', createPvBtn());
     }
     var btn = getPvBtn();
-    if (btn) { btn.classList.remove('faded'); btn.title = ''; }
+    if (btn) { btn.classList.remove('faded'); }
     document.addEventListener('dragstart', blockDrag, true);
     document.addEventListener('drag',      blockDrag, true);
     if (customSrc) {
@@ -1616,7 +1710,7 @@ document.querySelectorAll('.th-tip').forEach(el => {
     void viewer.offsetWidth;
     viewer.classList.add('pv-anim-minimize');
     var btn = getPvBtn();
-    if (btn) { btn.classList.add('faded'); btn.title = 'Clique para restaurar'; }
+    if (btn) { btn.classList.add('faded'); }
     setTimeout(function () {
       viewer.classList.add('pv-minimized');
       pvClearAnims();
@@ -2434,4 +2528,75 @@ window.runPoissonTests = (function () {
     console.groupEnd();
     return { passed: _passed, total: total, nota: nota, details: results };
   };
+})();
+(function () {
+  var YOUTUBE_LINK = 'https://youtu.be/MXaJ7sa7q-8?si=iZAgQZXKrlDj0pJx';
+  var POISSON_HELP_LINK = 'https://youtu.be/BbLfV0wOeyc?si=VxhmCsjrK2nS8iEZ';
+  var ttBox = document.getElementById('tooltip-box');
+
+  window.homeOpenYT = function () {
+    if (!YOUTUBE_LINK) {
+      if (ttBox) {
+        ttBox.textContent = 'Link do vídeo ainda não configurado.';
+        ttBox.style.left = Math.round(window.innerWidth / 2 - 120) + 'px';
+        ttBox.style.top = '120px';
+        ttBox.style.display = 'block';
+        setTimeout(function () { ttBox.style.display = 'none'; }, 2400);
+      }
+      return;
+    }
+    window.open(YOUTUBE_LINK, '_blank', 'noopener,noreferrer');
+  };
+  window.openPoissonHelp = function () {
+    if (!POISSON_HELP_LINK) {
+      if (ttBox) {
+        ttBox.textContent = 'Link ainda não configurado.';
+        var el = document.querySelector('.inf-help-link');
+        if (el) {
+          var r = el.getBoundingClientRect();
+          ttBox.style.left = Math.round(r.left) + 'px';
+          ttBox.style.top = Math.round(r.bottom + 6) + 'px';
+        } else {
+          ttBox.style.left = Math.round(window.innerWidth / 2 - 100) + 'px';
+          ttBox.style.top = '120px';
+        }
+        ttBox.style.display = 'block';
+        setTimeout(function () { ttBox.style.display = 'none'; }, 2400);
+      }
+      return;
+    }
+    window.open(POISSON_HELP_LINK, '_blank', 'noopener,noreferrer');
+  };
+
+  (function () {
+    var badge = document.getElementById('home-badge');
+    if (badge) {
+      badge.addEventListener('mouseenter', function () {
+        if (ttBox) {
+          ttBox.textContent = 'Voltar para a tela inicial';
+          ttBox.style.display = 'block';
+        }
+      });
+      badge.addEventListener('mousemove', function (e) {
+        if (ttBox) {
+          var x = e.clientX + 14;
+          var y = e.clientY - 10;
+          if (x + 250 > window.innerWidth) x = e.clientX - 260;
+          if (y + 80 > window.innerHeight) y = e.clientY - 90;
+          ttBox.style.left = x + 'px';
+          ttBox.style.top = y + 'px';
+        }
+      });
+      badge.addEventListener('mouseleave', function () {
+        if (ttBox) ttBox.style.display = 'none';
+      });
+    }
+  })();
+
+  document.addEventListener('DOMContentLoaded', function () {
+    window.openCalculadora();
+  });
+  if (document.readyState !== 'loading') {
+    window.openCalculadora();
+  }
 })();
