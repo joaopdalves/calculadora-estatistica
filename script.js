@@ -1202,9 +1202,20 @@ startMenuOverlay.addEventListener('click', closeStartMenu);
   document.body.appendChild(wallpaperEl);
   window._wallpaperEl = wallpaperEl;
 })();
+var _wppItems = [
+  { id: 'sm-betinha', path: 'imagens/betinha.png' },
+  { id: 'sm-oshomi',  path: 'imagens/oshomi.png'  }
+];
+function _wppResetAllTips() {
+  _wppItems.forEach(function(w) {
+    var el = document.getElementById(w.id);
+    if (el) el.setAttribute('data-tip', 'Definir como papel de parede');
+  });
+}
 function setWallpaper(imgPath) {
   const el = window._wallpaperEl;
-  const smBetinha = document.getElementById('sm-betinha');
+  const activeItem = _wppItems.find(function(w) { return w.path === imgPath; });
+  const activeEl = activeItem ? document.getElementById(activeItem.id) : null;
   if (el.style.display !== 'none' && el.getAttribute('data-wpp') === imgPath) {
     el.style.opacity = '0';
     setTimeout(function () {
@@ -1215,17 +1226,19 @@ function setWallpaper(imgPath) {
       el.removeAttribute('data-wpp');
       document.body.style.backgroundImage = '';
     }, 400);
-    if (smBetinha) smBetinha.setAttribute('data-tip', 'Definir como papel de parede');
+    if (activeEl) activeEl.setAttribute('data-tip', 'Definir como papel de parede');
     closeStartMenu();
     return;
   }
   const isFirst = el.style.display === 'none';
+  el.style.objectPosition = imgPath === 'imagens/oshomi.png' ? 'center center' : 'center top';
   el.onload = function () {
     document.body.style.backgroundImage = 'none';
     el.style.display = 'block';
     el.setAttribute('data-wpp', imgPath);
     requestAnimationFrame(() => { el.style.opacity = '1'; });
-    if (smBetinha) smBetinha.setAttribute('data-tip', 'Remover papel de parede');
+    _wppResetAllTips();
+    if (activeEl) activeEl.setAttribute('data-tip', 'Remover papel de parede');
     closeStartMenu();
   };
   el.onerror = function () {
@@ -1721,27 +1734,31 @@ document.querySelectorAll('.th-tip').forEach(el => {
       pvRestoreState = { left: viewer.style.left, top: viewer.style.top,
                          width: viewer.style.width, height: viewer.style.height,
                          position: viewer.style.position };
+      viewer.style.transform = '';
       pvClearAnims();
       void viewer.offsetWidth;
       viewer.classList.add('pv-maximized', 'pv-anim-maximize');
       pvMaxIcon.classList.add('restore');
       pvMaximized = true;
-      setTimeout(function () { pvClearAnims(); }, 210);
+      setTimeout(function () { pvClearAnims(); viewer.style.transform = 'none'; }, 210);
     } else {
       viewer.classList.remove('pv-maximized');
-      pvMaxIcon.classList.remove('restore');
-      if (pvRestoreState) {
-        viewer.style.left     = pvRestoreState.left;
-        viewer.style.top      = pvRestoreState.top;
-        viewer.style.width    = pvRestoreState.width || '';
-        viewer.style.height   = pvRestoreState.height || '';
-        viewer.style.position = pvRestoreState.position || 'absolute';
-      }
       pvClearAnims();
       void viewer.offsetWidth;
       viewer.classList.add('pv-anim-unmaximize');
       pvMaximized = false;
-      setTimeout(function () { pvClearAnims(); }, 190);
+      pvMaxIcon.classList.remove('restore');
+      setTimeout(function () {
+        pvClearAnims();
+        if (pvRestoreState) {
+          viewer.style.left     = pvRestoreState.left;
+          viewer.style.top      = pvRestoreState.top;
+          viewer.style.width    = pvRestoreState.width || '';
+          viewer.style.height   = pvRestoreState.height || '';
+          viewer.style.position = pvRestoreState.position || 'absolute';
+        }
+        viewer.style.transform = '';
+      }, 190);
     }
   });
   smImagensBtn.addEventListener('click', function() { pvOpen(); });
@@ -2598,5 +2615,19 @@ window.runPoissonTests = (function () {
   });
   if (document.readyState !== 'loading') {
     window.openCalculadora();
+  }
+})();
+(function () {
+  function disableVersionBadgeSelect() {
+    var badge = document.getElementById('home-version-badge');
+    if (!badge) return;
+    badge.style.userSelect = 'none';
+    badge.style.webkitUserSelect = 'none';
+    badge.style.msUserSelect = 'none';
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', disableVersionBadgeSelect);
+  } else {
+    disableVersionBadgeSelect();
   }
 })();
